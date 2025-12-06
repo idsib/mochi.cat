@@ -1,0 +1,251 @@
+/* Default / Cute Theme */
+:root {
+  --bg-color: #ffe6f2;
+  /* Super light pink */
+  --sidebar-bg: #fff0f5;
+  /* Lavender blush */
+  --text-main: #5d3a5d;
+  --text-dim: #886688;
+  --accent-pink: #ff9de2;
+  --accent-light: #ffcceb;
+  --border-color: #ffb6c1;
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-ui: 'VT323', monospace;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --grid-color: rgba(255, 182, 193, 0.4);
+  --box-shadow: 2px 2px 5px rgba(255, 182, 193, 0.5);
+  --header-bg: linear-gradient(to right, #ffc0cb, #ffb6c1);
+  /* Pink gradient */
+  --header-text: #fff;
+  /* Cute Theme Cursor: The Original Star Sparkle */
+  --cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10,0 L12,8 L20,10 L12,12 L10,20 L8,12 L0,10 L8,8 z' fill='%23ff9de2' stroke='%23ff1493' stroke-width='1'/></svg>") 10 10, auto;
+}
+
+[data-theme="papyrus"] {
+  --bg-color: #ffe6f2;
+  /* Pink background like Cute */
+  --sidebar-bg: #fff0f5;
+  --text-main: #5d3a5d;
+  --text-dim: #886688;
+  --accent-pink: #ff1493;
+  /* Deep pink */
+  --accent-light: #ffcceb;
+  --border-color: #ffb6c1;
+  --font-pixel: 'Papyrus', 'Comic Sans MS', cursive;
+  --font-ui: 'Comic Sans MS', cursive;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --grid-color: rgba(255, 105, 180, 0.3);
+  --box-shadow: 6px 6px 0px rgba(255, 105, 180, 0.5);
+  /* Chaotic pink shadow */
+  --header-bg: linear-gradient(to right, #ffb6c1, #ff69b4);
+  /* Darker pink gradient */
+  --header-text: #fff;
+  /* Papyrus Cursor: Pink Arrow with Whiskers */
+  --cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M4 4 L11 22 L14 15 L22 15 L4 4' fill='%23ffb6c1' stroke='%23ff1493' stroke-width='2' stroke-linejoin='round'/><path d='M14 15 L28 12' stroke='%23ff1493' stroke-width='1'/><path d='M14 15 L28 15' stroke='%23ff1493' stroke-width='1'/><path d='M14 15 L28 18' stroke='%23ff1493' stroke-width='1'/></svg>") 2 2, auto;
+}
+
+[data-theme="ascii"] {
+  --bg-color: #000000;
+  --sidebar-bg: #11050d;
+  --text-main: #ff69b4;
+  /* Pink terminal */
+  --text-dim: #993366;
+  --accent-pink: #ff1493;
+  --accent-light: #33001a;
+  --border-color: #ff69b4;
+  --font-pixel: 'Share Tech Mono', monospace;
+  /* Better ASCII font */
+  --font-ui: 'Share Tech Mono', monospace;
+  --card-bg: #000000;
+  --grid-color: rgba(255, 105, 180, 0.2);
+  --box-shadow: none;
+  --header-bg: #ff69b4;
+  /* Solid Neon Pink */
+  --header-text: #000;
+  /* Black text for contrast */
+  /* ASCII Cursor: Pixel Block Cat */
+  --cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='8' y='8' width='4' height='4' fill='%23ff69b4'/><rect x='20' y='8' width='4' height='4' fill='%23ff69b4'/><rect x='8' y='12' width='16' height='12' fill='%23ff69b4'/><rect x='4' y='12' width='4' height='8' fill='%23ffbcde'/><rect x='24' y='12' width='4' height='8' fill='%23ffbcde'/><rect x='12' y='16' width='4' height='4' fill='black'/><rect x='20' y='16' width='4' height='4' fill='black'/></svg>") 16 16, auto;
+  /* Removed image filter as requested */
+}
+
+[data-theme="ascii"] img,
+[data-theme="ascii"] video {
+  border: 1px solid var(--border-color) !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  background-color: var(--bg-color);
+  /* Mebious-like tiny grid */
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 4px 4px;
+  color: var(--text-main);
+  overflow-x: hidden;
+  font-size: 16px;
+  /* Use theme cursor */
+  cursor: var(--cursor);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff;
+  border-left: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-pink);
+  border: 1px solid #fff;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Y2K Containers */
+.container-retro {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--box-shadow);
+}
+
+.box-title {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding: 4px 8px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pixel-btn {
+  background: #fcebd9;
+  border: 1px solid #ffb6c1;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  padding: 4px 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  box-shadow: 1px 1px 0px #ffb6c1;
+  transition: all 0.1s;
+}
+
+.pixel-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.pixel-btn:hover {
+  background: #fff;
+}
+
+a {
+  color: var(--text-main);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-pink);
+}
+
+a:hover {
+  background-color: var(--accent-light);
+  color: #d10069;
+}
+
+/* Blinking effect */
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Cute Hover */
+.cute-hover {
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s;
+}
+
+.cute-hover:hover {
+  color: var(--accent-pink);
+  transform: translateY(-2px);
+  text-shadow: 1px 1px 0px #fff;
+}
+
+.cute-hover:hover::after {
+  content: "♥";
+  position: absolute;
+  right: -12px;
+  top: 0;
+  color: var(--accent-pink);
+  font-size: 10px;
+  animation: float 0.5s ease-in-out infinite alternate;
+}
+
+/* Simple Hover (No Heart) */
+.simple-hover {
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s;
+}
+
+.simple-hover:hover {
+  color: var(--accent-pink);
+  transform: translateY(-2px);
+  text-shadow: 1px 1px 0px #fff;
+}
+
+@keyframes float {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes pixel-bounce {
+  0% {
+    transform: translateY(0);
+  }
+
+  25% {
+    transform: translateY(-2px);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+
+  75% {
+    transform: translateY(-1px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
