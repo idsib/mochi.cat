@@ -26,9 +26,6 @@ dist-ssr
 # Environment variables
 .env
 
-# Media files
-public/pics/
-
 # Admin credentials
 ADMIN_SETUP.md
 .ADMIN_SETUP.md
