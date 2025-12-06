@@ -11,14 +11,20 @@ alter table pics enable row level security;
 -- Permitir que todos vean las fotos
 create policy "Todos pueden ver las fotos"
   on pics for select
-  to anon
+  to anon, authenticated
   using ( true );
 
--- Permitir que todos suban fotos (insertar)
-create policy "Cualquiera puede subir fotos"
+-- SOLO usuarios autenticados pueden subir fotos
+create policy "Solo admins pueden subir fotos"
   on pics for insert
-  to anon
+  to authenticated
   with check ( true );
+
+-- SOLO usuarios autenticados pueden eliminar fotos
+create policy "Solo admins pueden eliminar fotos"
+  on pics for delete
+  to authenticated
+  using ( true );
 
 -- 4. Crear el bucket de almacenamiento 'mochi-uploads'
 insert into storage.buckets (id, name, public)
@@ -28,14 +34,20 @@ values ('mochi-uploads', 'mochi-uploads', true);
 -- Permitir acceso público para ver archivos
 create policy "Todos pueden ver archivos"
   on storage.objects for select
-  to anon
+  to anon, authenticated
   using ( bucket_id = 'mochi-uploads' );
 
--- Permitir acceso público para subir archivos
-create policy "Todos pueden subir archivos"
+-- SOLO usuarios autenticados pueden subir archivos
+create policy "Solo admins pueden subir archivos"
   on storage.objects for insert
-  to anon
+  to authenticated
   with check ( bucket_id = 'mochi-uploads' );
+
+-- SOLO usuarios autenticados pueden eliminar archivos
+create policy "Solo admins pueden eliminar archivos"
+  on storage.objects for delete
+  to authenticated
+  using ( bucket_id = 'mochi-uploads' );
 
 -- 6. Crear tabla de estadísticas (Hit Counter)
 create table site_stats (

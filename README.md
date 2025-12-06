@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Mochi ASCII Animation](public/mochi_ascii.webm)
+![Mochi ASCII Animation](https://github.com/idsib/mochi.cat/raw/main/public/mochi_ascii.webm)
 
 **✨ MOCHI GALLERY:3 ✨**
 

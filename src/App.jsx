@@ -9,6 +9,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState('home')
   const [views, setViews] = useState(0)
   const [theme, setTheme] = useState('cute')
+  const [user, setUser] = useState(null)
+  const [showLogin, setShowLogin] = useState(false)
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
 
   useEffect(() => {
     // 1. Load Gallery
@@ -51,7 +56,15 @@ function App() {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channelVals) }
+    // 4. Auth State Listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      supabase.removeChannel(channelVals)
+      authListener?.subscription?.unsubscribe()
+    }
   }, [])
 
   const handleUpload = async (e) => {
@@ -65,12 +78,66 @@ function App() {
       const { error: uploadError } = await supabase.storage.from('mochi-uploads').upload(filePath, file)
       if (uploadError) throw uploadError
       const { data: { publicUrl } } = supabase.storage.from('mochi-uploads').getPublicUrl(filePath)
-      const { error: dbError } = await supabase.from('pics').insert([{ url: publicUrl }])
+      const { data, error: dbError } = await supabase.from('pics').insert([{ url: publicUrl }]).select()
       if (dbError) throw dbError
+
+      // Add to local state immediately
+      if (data && data[0]) {
+        setPics(current => [data[0], ...current])
+      }
+
       setShowUpload(false)
       alert("SUCCESS!")
     } catch (error) { alert(error.message) }
     finally { setUploading(false) }
+  }
+
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    setLoginError('')
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword
+    })
+
+    if (error) {
+      setLoginError(error.message)
+    } else {
+      setShowLogin(false)
+      setLoginEmail('')
+      setLoginPassword('')
+    }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+  }
+
+  const handleDelete = async (pic) => {
+    if (!window.confirm('¿Seguro que quieres eliminar este archivo?')) return
+
+    try {
+      // Delete from database
+      if (pic.id) {
+        const { error: dbError } = await supabase.from('pics').delete().eq('id', pic.id)
+        if (dbError) throw dbError
+      }
+
+      // Delete from storage (if it's a cloud file)
+      if (pic.url && pic.url.includes('supabase')) {
+        const fileName = pic.url.split('/').pop()
+        const { error: storageError } = await supabase.storage.from('mochi-uploads').remove([fileName])
+        if (storageError) throw storageError
+      }
+
+      // Remove from local state immediately
+      setPics(current => current.filter(p => p.id !== pic.id))
+
+      alert('¡Eliminado!')
+    } catch (error) {
+      alert('Error: ' + error.message)
+    }
   }
 
   useEffect(() => {
@@ -80,11 +147,11 @@ function App() {
   // Separate content
   const videos = pics.filter(p => {
     const src = p.url || `/pics/${p}`
-    return src.match(/\.(mp4)$/i) // ONLY MP4
+    return src.match(/\.(mp4|mov|webm|avi)$/i) // Multiple video formats
   })
   const photos = pics.filter(p => {
     const src = p.url || `/pics/${p}`
-    return !src.match(/\.(mp4|mov|webm)$/i)
+    return !src.match(/\.(mp4|mov|webm|avi)$/i)
   })
 
   return (
@@ -142,9 +209,7 @@ function App() {
               {currentPage === 'home' ? '♥ HOME' : 'HOME'}
             </button>
             <button
-              onClick={() => setCurrentPage('about')}
-              className="simple-hover"
-              style={{
+              onClick={() => setCurrentPage('about')} className="simple-hover" style={{
                 fontFamily: "var(--font-pixel)",
                 fontSize: '10px',
                 background: 'none',
@@ -153,13 +218,21 @@ function App() {
                 textAlign: 'left',
                 color: currentPage === 'about' ? 'var(--accent-pink)' : 'inherit',
                 textShadow: currentPage === 'about' ? '1px 1px 0px #fff' : 'none'
-              }}
-            >
+              }}>
               {currentPage === 'about' ? '♥ ABOUT' : 'ABOUT'}
             </button>
-            <button onClick={() => setShowUpload(true)} className="pixel-btn" style={{ marginTop: '10px' }}>
+            <button onClick={() => user ? setShowUpload(true) : setShowLogin(true)} className="pixel-btn" style={{ marginTop: '10px' }}>
               + UPLOAD
             </button>
+
+            {user && (
+              <div style={{ marginTop: '10px', fontSize: '9px', color: 'var(--text-dim)', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
+                <div>👤 {user.email}</div>
+                <button onClick={handleLogout} className="pixel-btn" style={{ marginTop: '5px', width: '100%', fontSize: '8px' }}>
+                  CERRAR SESIÓN
+                </button>
+              </div>
+            )}
 
             <div style={{ marginTop: '20px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
               <div style={{ fontSize: '10px', marginBottom: '5px' }}>THEME:</div>
@@ -248,8 +321,35 @@ function App() {
                       <div key={pic.id || i} style={{
                         border: '1px solid var(--border-color)',
                         padding: '3px',
-                        boxShadow: 'var(--box-shadow)'
+                        boxShadow: 'var(--box-shadow)',
+                        position: 'relative'
                       }}>
+                        {user && pic.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete(pic)
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              right: '8px',
+                              background: 'rgba(255, 0, 0, 0.8)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              zIndex: 10,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        )}
                         <div
                           onClick={() => setSelectedPic(src)}
                           style={{
@@ -301,8 +401,35 @@ function App() {
                       <div key={pic.id || i} style={{
                         border: '1px solid var(--border-color)',
                         padding: '3px',
-                        boxShadow: 'var(--box-shadow)'
+                        boxShadow: 'var(--box-shadow)',
+                        position: 'relative'
                       }}>
+                        {user && pic.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete(pic)
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              right: '8px',
+                              background: 'rgba(255, 0, 0, 0.8)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              zIndex: 10,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        )}
                         <div
                           onClick={() => setSelectedPic(src)}
                           style={{
@@ -386,7 +513,6 @@ function App() {
                         transition: 'width 0.5s'
                       }}></div>
                     </div>
-                    <div style={{ fontSize: '9px', marginTop: '3px', color: 'var(--text-dim)' }}>2 / 3 years</div>
                   </div>
                 </div>
               </div>
@@ -397,6 +523,51 @@ function App() {
       </main>
 
       {/* Modals */}
+      {showLogin && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 999
+        }}>
+          <div className="container-retro" style={{ width: '300px', background: 'var(--bg-color)' }}>
+            <div className="box-title" style={{ justifyContent: 'space-between' }}>
+              <span>ADMIN LOGIN</span>
+              <button onClick={() => { setShowLogin(false); setLoginError('') }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
+            </div>
+            <form onSubmit={handleLogin} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                required
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  padding: '8px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--card-bg)'
+                }}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+                style={{
+                  fontFamily: 'var(--font-ui)',
+                  padding: '8px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--card-bg)'
+                }}
+              />
+              {loginError && <div style={{ color: 'red', fontSize: '10px' }}>{loginError}</div>}
+              <button type="submit" className="pixel-btn">INICIAR SESIÓN</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {showUpload && (
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',

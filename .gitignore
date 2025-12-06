@@ -28,3 +28,7 @@ dist-ssr
 
 # Media files
 public/pics/
+
+# Admin credentials
+ADMIN_SETUP.md
+.ADMIN_SETUP.md
