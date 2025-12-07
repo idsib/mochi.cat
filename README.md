@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Mochi ASCII Animation](https://github.com/idsib/mochi.cat/raw/main/public/mochi_ascii.webm)
+![Mochi ASCII Animation](https://github.com/idsib/mochi.cat/raw/main/public/mochi_ascii.gif)
 
 **✨ MOCHI GALLERY:3 ✨**
 
@@ -14,7 +14,7 @@
 
 ## 🎀 What is This? :3
 
-**Mochi.cat** is a Y2K-aesthetic photo gallery dedicated to Mochi, the most cutie cat 4ever. Think early 2000s web design meets modern React ✨
+**Mochi.cat** is a Y2K-aesthetic photo gallery dedicated to Mochi, the most cute cat ever. Early 2000s web design meets modern React ✨
 
 ### 🌟 Features
 
@@ -40,8 +40,8 @@
 | ⚡ **Vite** | Build Tool & Dev Server |
 | 🎨 **CSS Variables** | Dynamic Theming |
 | 🗄️ **Supabase** | Database & Storage |
-| 🐰 **Bun** | Package Manager |
-| 💅 **Custom SVG Cursors** | Maximum Cuteness |
+| 🧅 **Bun** | Package Manager |
+| 🖱️ **Custom SVG Cursors** | Maximum Cuteness |
 
 </div>
 
@@ -79,22 +79,10 @@ mochi.cat/
 └── supabase_setup.sql  # Database schema
 ```
 
----
-
-## 💖 About Mochi
-
-**Name:** Mochi  
-**Type:** Cat  
-**Nature:** Cutie  
-**Gender:** ♀  
-**Level:** 2yo
-
----
-
 <div align="center">
 
 **Made with 💕 by [@idsib](https://github.com/idsib)**
 
-*lovu sandra&mochi* 🐱✨
+*lovu sandra & mochi* 🐱✨
 
 </div>

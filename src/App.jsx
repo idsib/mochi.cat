@@ -230,7 +230,7 @@ function App() {
               <div style={{ marginTop: '10px', fontSize: '9px', color: 'var(--text-dim)', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
                 <div>👤 {user.email}</div>
                 <button onClick={handleLogout} className="pixel-btn" style={{ marginTop: '5px', width: '100%', fontSize: '8px' }}>
-                  CERRAR SESIÓN
+                  LOGOUT
                 </button>
               </div>
             )}
@@ -603,7 +603,7 @@ function App() {
             position: 'relative' // For absolute arrow positioning
           }}>
             <div className="box-title" style={{ justifyContent: 'space-between' }}>
-              <span>VIEWER.EXE</span>
+              <span>MOCHI.EXE</span>
               <button onClick={() => setSelectedPic(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
             </div>
 
