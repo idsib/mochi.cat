@@ -244,8 +244,69 @@ a:hover {
   75% {
     transform: translateY(-1px);
   }
+}
 
-  100% {
-    transform: translateY(0);
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  #root {
+    padding: 10px;
+  }
+
+  /* Stack layout vertically on mobile */
+  .app-container {
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+
+  /* Sidebar full width on mobile */
+  .sidebar-mobile {
+    width: 100% !important;
+    max-height: none !important;
+  }
+
+  /* Main content full width */
+  .main-mobile {
+    width: 100% !important;
+    margin-top: 10px;
+  }
+
+  /* Smaller grid on mobile */
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  /* Smaller fonts for mobile */
+  .box-title {
+    font-size: 8px !important;
+  }
+
+  .pixel-btn {
+    font-size: 8px !important;
+    padding: 3px 6px !important;
+  }
+
+  /* Adjust modals for mobile */
+  .modal-container {
+    width: 90% !important;
+    max-width: 300px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Extra small phones */
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  }
+
+  h2 {
+    font-size: 12px !important;
   }
 }

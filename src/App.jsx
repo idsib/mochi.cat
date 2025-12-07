@@ -155,16 +155,17 @@ function App() {
   })
 
   return (
-    <div style={{
+    <div className="app-container" style={{
       display: 'flex',
       width: '1000px',
+      maxWidth: '100%',
       height: '90vh',
       gap: '10px',
       margin: '0 auto'
     }}>
 
       {/* Sidebar (Left Frame) */}
-      <aside className="container-retro" style={{
+      <aside className="container-retro sidebar-mobile" style={{
         width: '250px',
         display: 'flex',
         flexDirection: 'column',
@@ -273,7 +274,7 @@ function App() {
       </aside>
 
       {/* Main Content (Right Frame) */}
-      <main className="container-retro" style={{
+      <main className="container-retro main-mobile" style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
@@ -562,7 +563,7 @@ function App() {
                 }}
               />
               {loginError && <div style={{ color: 'red', fontSize: '10px' }}>{loginError}</div>}
-              <button type="submit" className="pixel-btn">INICIAR SESIÓN</button>
+              <button type="submit" className="pixel-btn">LOGIN</button>
             </form>
           </div>
         </div>
