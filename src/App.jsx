@@ -479,22 +479,35 @@ function App() {
                 maxWidth: '600px'
               }}>
                 <h1 style={{ fontFamily: 'var(--font-pixel)', color: 'var(--accent-pink)', marginBottom: '20px' }}>Who is Mochi?</h1>
-                <img src="/pics/mochi3.jpg" style={{ width: '200px', border: '5px solid var(--card-bg)', boxShadow: 'var(--box-shadow)' }} />
+                <img src="/pics/mochi3.jpg" style={{ width: '200px', border: '5px solid #fff', boxShadow: '5px 5px 0px #eee' }} />
                 <p style={{
                   marginTop: '20px',
                   fontFamily: 'var(--font-ui)',
-                  fontSize: '18px',
                   lineHeight: '1.5',
                   color: 'var(--text-main)'
                 }}>
-                  t amo mochi:3
+                  most cute cat 4ever mochi🥺 💕
+                  <br /><br />
+                  t amo sandra ♡
                   <br /><br />
                   (｡♥‿♥｡)
                 </p>
                 <div style={{ marginTop: '30px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', fontSize: '12px', color: 'var(--text-dim)' }}>
                   <div style={{ marginBottom: '10px' }}>
-                    <a href="https://github.com/idsib/mochi.cat" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-pink)', textDecoration: 'none', fontFamily: 'var(--font-pixel)', fontSize: '10px' }}>
-                      ★ GitHub Repository ★
+                    <a href="https://github.com/idsib/mochi.cat" target="_blank" rel="noopener noreferrer" style={{
+                      color: 'var(--text-main)',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'transform 0.2s'
+                    }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                      </svg>
                     </a>
                   </div>
                   <div style={{ marginTop: '15px' }}>
@@ -530,7 +543,7 @@ function App() {
           background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 999
         }}>
-          <div className="container-retro" style={{ width: '300px', background: 'var(--bg-color)' }}>
+          <div className="container-retro modal-container" style={{ width: '300px', background: 'var(--bg-color)' }}>
             <div className="box-title" style={{ justifyContent: 'space-between' }}>
               <span>ADMIN LOGIN</span>
               <button onClick={() => { setShowLogin(false); setLoginError('') }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
