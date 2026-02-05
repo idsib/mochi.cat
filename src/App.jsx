@@ -14,6 +14,117 @@ function App() {
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Touch/swipe state for lightbox
+  const [touchStart, setTouchStart] = useState(null)
+  const [touchEnd, setTouchEnd] = useState(null)
+  const minSwipeDistance = 50
+
+  // Valentine Undertale-style states
+  const [valentinePhase, setValentinePhase] = useState('intro') // intro, battle, result
+  const [dialogText, setDialentText] = useState('')
+  const [displayedText, setDisplayedText] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const [selectedAction, setSelectedAction] = useState(null)
+  const [heartPosition, setHeartPosition] = useState({ x: 50, y: 50 })
+  const [floatingHearts, setFloatingHearts] = useState([])
+  const [valentineResult, setValentineResult] = useState(null)
+  const [mochiHP, setMochiHP] = useState(100)
+  const [lovePoints, setLovePoints] = useState(0)
+  const [shakeScreen, setShakeScreen] = useState(false)
+
+  // Valentine dialog messages
+  const valentineDialogs = {
+    intro: "* MOCHI aparece!\n* Parece que quiere algo...\n* ¿Qué harás?",
+    flirt: "* Le dices a MOCHI que es muy linda...\n* MOCHI ronronea felizmente!\n* +20 LOVE POINTS!",
+    pet: "* Acaricias suavemente a MOCHI...\n* ¡Sus ojos brillan con amor!\n* +30 LOVE POINTS!",
+    treat: "* Le das un treat a MOCHI...\n* ¡MOCHI está encantada!\n* +25 LOVE POINTS!",
+    mercy: "* Decides quedarte con MOCHI para siempre...\n* ¡MOCHI te acepta!\n* ♥ TRUE LOVE ENDING ♥",
+    attack: "* No puedes atacar a algo tan adorable...\n* MOCHI te mira con ojos tiernos.\n* Tu SOUL se derrite...",
+    win: "* ¡Feliz San Valentín!\n* MOCHI te quiere mucho!\n* ♥ LOVE WINS ♥"
+  }
+
+  // Typewriter effect for dialog
+  useEffect(() => {
+    if (!dialogText) return
+    setIsTyping(true)
+    setDisplayedText('')
+    let i = 0
+    const interval = setInterval(() => {
+      if (i < dialogText.length) {
+        setDisplayedText(prev => prev + dialogText[i])
+        i++
+      } else {
+        setIsTyping(false)
+        clearInterval(interval)
+      }
+    }, 30)
+    return () => clearInterval(interval)
+  }, [dialogText])
+
+  // Start valentine dialog
+  useEffect(() => {
+    if (currentPage === 'valentine') {
+      setValentinePhase('intro')
+      setDialentText(valentineDialogs.intro)
+      setLovePoints(0)
+      setMochiHP(100)
+      setValentineResult(null)
+      startFloatingHearts()
+    }
+  }, [currentPage])
+
+  // Floating hearts animation
+  const startFloatingHearts = () => {
+    const hearts = []
+    for (let i = 0; i < 15; i++) {
+      hearts.push({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 5,
+        duration: 3 + Math.random() * 4,
+        size: 10 + Math.random() * 20
+      })
+    }
+    setFloatingHearts(hearts)
+  }
+
+  // Handle Valentine action
+  const handleValentineAction = (action) => {
+    setSelectedAction(action)
+    setShakeScreen(true)
+    setTimeout(() => setShakeScreen(false), 300)
+
+    if (action === 'fight') {
+      setDialentText(valentineDialogs.attack)
+      setMochiHP(prev => Math.max(prev - 0, prev))
+    } else if (action === 'act') {
+      const actOptions = ['flirt', 'pet', 'treat']
+      const randomAct = actOptions[Math.floor(Math.random() * actOptions.length)]
+      setDialentText(valentineDialogs[randomAct])
+      setLovePoints(prev => {
+        const newPoints = prev + (randomAct === 'pet' ? 30 : randomAct === 'flirt' ? 20 : 25)
+        if (newPoints >= 100) {
+          setTimeout(() => {
+            setValentinePhase('result')
+            setDialentText(valentineDialogs.win)
+            setValentineResult('love')
+          }, 2000)
+        }
+        return Math.min(newPoints, 100)
+      })
+    } else if (action === 'item') {
+      setDialentText("* Usas un ❤️ Chocolate...\n* MOCHI está muy feliz!\n* +15 LOVE POINTS!")
+      setLovePoints(prev => Math.min(prev + 15, 100))
+    } else if (action === 'mercy') {
+      setDialentText(valentineDialogs.mercy)
+      setTimeout(() => {
+        setValentinePhase('result')
+        setValentineResult('mercy')
+      }, 3000)
+    }
+  }
 
   useEffect(() => {
     // 1. Load Gallery
@@ -155,36 +266,36 @@ function App() {
   })
 
   return (
-    <div className="app-container" style={{
-      display: 'flex',
-      width: '1000px',
-      maxWidth: '100%',
-      height: '90vh',
-      gap: '10px',
-      margin: '0 auto'
-    }}>
+    <div className="app-container">
+
+      {/* Mobile Header with Hamburger */}
+      <div className="mobile-header">
+        <div className="mobile-brand">
+          <img src="/pics/mochi1.jpg" alt="Mochi" className="mobile-avatar" />
+          <span className="mobile-title">MOCHI.CAT</span>
+        </div>
+        <button
+          className={`hamburger-btn ${mobileMenuOpen ? 'active' : ''}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
 
       {/* Sidebar (Left Frame) */}
-      <aside className="container-retro sidebar-mobile" style={{
-        width: '250px',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '2px'
-      }}>
-        <div className="box-title">:: MENU ::</div>
-        <div style={{ padding: '15px', textAlign: 'center', height: '100%', overflowY: 'auto' }}>
-          <div style={{
-            border: '1px solid var(--border-color)',
-            padding: '5px',
-            background: 'var(--sidebar-bg)',
-            marginBottom: '15px'
-          }}>
+      <aside className={`container-retro sidebar sidebar-mobile ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div className="box-title desktop-only">:: MENU ::</div>
+        <div className="sidebar-content">
+          <div className="profile-box desktop-only">
             <img
               src="/pics/mochi1.jpg"
               alt="profile"
-              style={{ width: '100%', height: 'auto', display: 'block', border: '1px solid var(--border-color)' }}
+              className="profile-img"
             />
-            <div style={{ marginTop: '5px', fontSize: '10px', fontFamily: 'var(--font-pixel)', textAlign: 'left', paddingLeft: '10px' }}>
+            <div className="profile-info">
               Name: Mochi<br />
               Type: Cat<br />
               Nature: Cutie<br />
@@ -192,60 +303,63 @@ function App() {
             </div>
           </div>
 
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+          <nav className="nav-list">
             <button
-              onClick={() => setCurrentPage('home')}
-              className="simple-hover"
-              style={{
-                fontFamily: "var(--font-pixel)",
-                fontSize: '10px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                color: currentPage === 'home' ? 'var(--accent-pink)' : 'inherit',
-                textShadow: currentPage === 'home' ? '1px 1px 0px #fff' : 'none'
-              }}
+              onClick={() => { setCurrentPage('home'); setMobileMenuOpen(false); }}
+              className={`nav-link simple-hover ${currentPage === 'home' ? 'active' : ''}`}
             >
-              {currentPage === 'home' ? '♥ HOME' : 'HOME'}
+              <span className="nav-icon">🏠</span>
+              <span className="nav-text">{currentPage === 'home' ? '♥ HOME' : 'HOME'}</span>
             </button>
             <button
-              onClick={() => setCurrentPage('about')} className="simple-hover" style={{
-                fontFamily: "var(--font-pixel)",
-                fontSize: '10px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                color: currentPage === 'about' ? 'var(--accent-pink)' : 'inherit',
-                textShadow: currentPage === 'about' ? '1px 1px 0px #fff' : 'none'
-              }}>
-              {currentPage === 'about' ? '♥ ABOUT' : 'ABOUT'}
+              onClick={() => { setCurrentPage('about'); setMobileMenuOpen(false); }}
+              className={`nav-link simple-hover ${currentPage === 'about' ? 'active' : ''}`}
+            >
+              <span className="nav-icon">ℹ️</span>
+              <span className="nav-text">{currentPage === 'about' ? '♥ ABOUT' : 'ABOUT'}</span>
             </button>
-            <button onClick={() => user ? setShowUpload(true) : setShowLogin(true)} className="pixel-btn" style={{ marginTop: '10px' }}>
-              + UPLOAD
+            <button
+              onClick={() => { setCurrentPage('valentine'); setMobileMenuOpen(false); }}
+              className={`nav-link simple-hover valentine-btn ${currentPage === 'valentine' ? 'active' : ''}`}
+            >
+              <span className="nav-icon">💝</span>
+              <span className="nav-text">{currentPage === 'valentine' ? '💕 VALENTINE' : 'VALENTINE'}</span>
+            </button>
+            <button
+              onClick={() => { user ? setShowUpload(true) : setShowLogin(true); setMobileMenuOpen(false); }}
+              className="nav-link upload-btn"
+            >
+              <span className="nav-icon">📤</span>
+              <span className="nav-text">UPLOAD</span>
             </button>
 
             {user && (
-              <div style={{ marginTop: '10px', fontSize: '9px', color: 'var(--text-dim)', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
-                <div>👤 {user.email}</div>
-                <button onClick={handleLogout} className="pixel-btn" style={{ marginTop: '5px', width: '100%', fontSize: '8px' }}>
-                  LOGOUT
+              <div className="mobile-user-info">
+                <div className="user-email">👤 {user.email}</div>
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="nav-link logout-btn">
+                  <span className="nav-icon">🚪</span>
+                  <span className="nav-text">LOGOUT</span>
                 </button>
               </div>
             )}
 
-            <div style={{ marginTop: '20px', borderTop: '1px dashed var(--border-color)', paddingTop: '10px' }}>
-              <div style={{ fontSize: '10px', marginBottom: '5px' }}>THEME:</div>
-              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button onClick={() => setTheme('cute')} className="pixel-btn" style={{ background: theme === 'cute' ? 'var(--accent-pink)' : '' }}>🌸</button>
-                <button onClick={() => setTheme('papyrus')} className="pixel-btn" style={{ background: theme === 'papyrus' ? 'var(--accent-pink)' : '', fontFamily: 'Papyrus, Comic Sans MS' }}>📜</button>
-                <button onClick={() => setTheme('ascii')} className="pixel-btn" style={{ background: theme === 'ascii' ? 'var(--accent-pink)' : '', fontFamily: 'monospace' }}>📟</button>
+            <div className="theme-selector">
+              <div className="theme-label">THEME</div>
+              <div className="theme-buttons">
+                <button onClick={() => setTheme('cute')} className={`theme-btn ${theme === 'cute' ? 'active' : ''}`} title="Cute">
+                  🌸
+                </button>
+                <button onClick={() => setTheme('papyrus')} className={`theme-btn ${theme === 'papyrus' ? 'active' : ''}`} title="Papyrus">
+                  📜
+                </button>
+                <button onClick={() => setTheme('ascii')} className={`theme-btn ${theme === 'ascii' ? 'active' : ''}`} title="ASCII">
+                  📟
+                </button>
               </div>
             </div>
           </nav>
 
-          <div style={{ marginTop: 'auto', fontSize: '12px', color: 'var(--text-dim)' }}>
+          <div className="views-counter desktop-only">
             <img
               src="/mochi_pixel.png"
               alt="pixel mochi"
@@ -258,234 +372,171 @@ function App() {
               }}
             />
             Total Views:<br />
-            <span style={{
-              fontFamily: 'var(--font-pixel)',
-              color: 'var(--accent-pink)',
-              fontSize: '14px',
-              display: 'inline-block',
-              transition: 'transform 0.2s',
-              transform: 'scale(1)',
-              key: views
-            }}>
+            <span className="views-number" style={{ key: views }}>
               {String(views).padStart(6, '0')}
             </span>
           </div>
         </div>
       </aside>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <button
+          onClick={() => setCurrentPage('home')}
+          className={`mobile-nav-btn ${currentPage === 'home' ? 'active' : ''}`}
+        >
+          <span className="mobile-nav-icon">🏠</span>
+          <span className="mobile-nav-label">Home</span>
+        </button>
+        <button
+          onClick={() => setCurrentPage('valentine')}
+          className={`mobile-nav-btn ${currentPage === 'valentine' ? 'active' : ''}`}
+        >
+          <span className="mobile-nav-icon">💝</span>
+          <span className="mobile-nav-label">Love</span>
+        </button>
+        <button
+          onClick={() => user ? setShowUpload(true) : setShowLogin(true)}
+          className="mobile-nav-btn mobile-upload-btn"
+        >
+          <span className="mobile-nav-icon">+</span>
+          <span className="mobile-nav-label">Add</span>
+        </button>
+        <button
+          onClick={() => setCurrentPage('about')}
+          className={`mobile-nav-btn ${currentPage === 'about' ? 'active' : ''}`}
+        >
+          <span className="mobile-nav-icon">ℹ️</span>
+          <span className="mobile-nav-label">Info</span>
+        </button>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`mobile-nav-btn ${mobileMenuOpen ? 'active' : ''}`}
+        >
+          <span className="mobile-nav-icon">☰</span>
+          <span className="mobile-nav-label">Menu</span>
+        </button>
+      </nav>
+
       {/* Main Content (Right Frame) */}
-      <main className="container-retro main-mobile" style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '2px'
-      }}>
+      <main className="container-retro main-content main-mobile">
         <div className="box-title">
           <span>:: MOCHI.CAT - {currentPage === 'home' ? 'GALLERY' : 'PROFILE'} ::</span>
           <span className="blink">● ONLINE</span>
         </div>
 
-        <div style={{
-          padding: '10px',
-          overflowY: 'scroll',
-          height: '100%',
-          background: 'var(--card-bg)'
-        }}>
+        <div className="content-scrollable">
 
           {currentPage === 'home' && (
             <>
               {/* Photos Section */}
-              <div style={{ marginBottom: '30px' }}>
-                <div style={{
-                  marginBottom: '10px',
-                  borderBottom: '1px dashed var(--border-color)',
-                  paddingBottom: '5px'
-                }}>
-                  <h2 style={{
-                    fontFamily: 'var(--font-pixel)',
-                    fontSize: '16px',
-                    margin: '0',
-                    color: 'var(--accent-pink)'
-                  }}>
-                    ♥ PHOTOS ({photos.length})
-                  </h2>
-                </div>
+              <div className="section-title">
+                <h2>♥ PHOTOS ({photos.length})</h2>
+              </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                  gap: '8px'
-                }}>
-                  {photos.map((pic, i) => {
-                    const src = pic.url || `/pics/${pic}`
-                    return (
-                      <div key={pic.id || i} style={{
-                        border: '1px solid var(--border-color)',
-                        padding: '3px',
-                        boxShadow: 'var(--box-shadow)',
-                        position: 'relative'
-                      }}>
-                        {user && pic.id && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(pic)
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: '8px',
-                              right: '8px',
-                              background: 'rgba(255, 0, 0, 0.8)',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '24px',
-                              height: '24px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              zIndex: 10,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        )}
-                        <div
-                          onClick={() => setSelectedPic(src)}
+              <div className="gallery-grid">
+                {photos.map((pic, i) => {
+                  const src = pic.url || `/pics/${pic}`
+                  return (
+                    <div key={pic.id || i} className="gallery-item">
+                      {user && pic.id && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(pic)
+                          }}
+                          className="pixel-btn"
                           style={{
-                            aspectRatio: '1/1',
-                            width: '100%',
-                            background: 'var(--bg-color)',
-                            cursor: 'pointer',
-                            overflow: 'hidden'
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            background: 'rgba(255, 0, 0, 0.8)',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            zIndex: 10
                           }}
                         >
-                          <img
-                            src={src}
-                            alt="mochi"
-                            loading="lazy"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.2s', ':hover': { transform: 'scale(1.1)' } }}
-                          />
-                        </div>
+                          🗑️
+                        </button>
+                      )}
+                      <div onClick={() => setSelectedPic(src)} className="gallery-img-container">
+                        <img
+                          src={src}
+                          alt="mochi"
+                          loading="lazy"
+                          className="gallery-img"
+                        />
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Videos Section */}
-              <div>
-                <div style={{
-                  marginBottom: '10px',
-                  borderBottom: '1px dashed var(--border-color)',
-                  paddingBottom: '5px'
-                }}>
-                  <h2 style={{
-                    fontFamily: 'var(--font-pixel)',
-                    fontSize: '16px',
-                    margin: '0',
-                    color: 'var(--accent-pink)'
-                  }}>
-                    ♥ VIDEOS ({videos.length})
-                  </h2>
-                </div>
+              <div className="section-title" style={{ marginTop: '30px' }}>
+                <h2>♥ VIDEOS ({videos.length})</h2>
+              </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                  gap: '8px'
-                }}>
-                  {videos.map((pic, i) => {
-                    const src = pic.url || `/pics/${pic}`
-                    return (
-                      <div key={pic.id || i} style={{
-                        border: '1px solid var(--border-color)',
-                        padding: '3px',
-                        boxShadow: 'var(--box-shadow)',
-                        position: 'relative'
-                      }}>
-                        {user && pic.id && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(pic)
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: '8px',
-                              right: '8px',
-                              background: 'rgba(255, 0, 0, 0.8)',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '24px',
-                              height: '24px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              zIndex: 10,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        )}
-                        <div
-                          onClick={() => setSelectedPic(src)}
+              <div className="gallery-grid">
+                {videos.map((pic, i) => {
+                  const src = pic.url || `/pics/${pic}`
+                  return (
+                    <div key={pic.id || i} className="gallery-item">
+                      {user && pic.id && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(pic)
+                          }}
+                          className="pixel-btn"
                           style={{
-                            aspectRatio: '1/1',
-                            width: '100%',
-                            background: '#000',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            position: 'relative'
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            background: 'rgba(255, 0, 0, 0.8)',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            zIndex: 10
                           }}
                         >
-                          <video
-                            src={src + "#t=0.1"}
-                            preload="metadata"
-                            muted
-                            playsInline
-                            onMouseOver={e => e.target.play()}
-                            onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <div style={{
-                            position: 'absolute',
-                            bottom: '5px',
-                            right: '5px',
-                            color: '#fff',
-                            fontSize: '10px',
-                            background: 'rgba(0,0,0,0.5)',
-                            padding: '2px'
-                          }}>▶</div>
-                        </div>
+                          🗑️
+                        </button>
+                      )}
+                      <div onClick={() => setSelectedPic(src)} className="gallery-img-container" style={{ background: '#000' }}>
+                        <video
+                          src={src + "#t=0.1"}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          onMouseOver={e => e.target.play()}
+                          onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
+                          className="gallery-img"
+                        />
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '5px',
+                          right: '5px',
+                          color: '#fff',
+                          fontSize: '10px',
+                          background: 'rgba(0,0,0,0.5)',
+                          padding: '2px'
+                        }}>▶</div>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
             </>
           )}
 
           {currentPage === 'about' && (
-            <div style={{ padding: '20px', textAlign: 'center' }}>
-              <div style={{
-                border: '2px dashed var(--border-color)',
-                padding: '20px',
-                background: 'var(--sidebar-bg)',
-                display: 'inline-block',
-                maxWidth: '600px'
-              }}>
-                <h1 style={{ fontFamily: 'var(--font-pixel)', color: 'var(--accent-pink)', marginBottom: '20px' }}>Who is Mochi?</h1>
-                <img src="/pics/mochi3.jpg" style={{ width: '200px', border: '5px solid #fff', boxShadow: '5px 5px 0px #eee' }} />
-                <p style={{
-                  marginTop: '20px',
-                  fontFamily: 'var(--font-ui)',
-                  lineHeight: '1.5',
-                  color: 'var(--text-main)'
-                }}>
+            <div className="about-card">
+              <div className="about-inner">
+                <h1 className="about-title">Who is Mochi?</h1>
+                <img src="/pics/mochi3.jpg" className="about-img" />
+                <p className="about-text">
                   most cute cat 4ever mochi🥺 💕
                   <br /><br />
                   t amo sandra ♡
@@ -533,20 +584,168 @@ function App() {
             </div>
           )}
 
+          {/* Valentine Undertale-Style Section */}
+          {currentPage === 'valentine' && (
+            <div className={`valentine-container ${shakeScreen ? 'shake' : ''}`}>
+              {/* Floating Hearts Background */}
+              <div className="floating-hearts">
+                {floatingHearts.map(heart => (
+                  <div
+                    key={heart.id}
+                    className="floating-heart"
+                    style={{
+                      left: `${heart.x}%`,
+                      animationDelay: `${heart.delay}s`,
+                      animationDuration: `${heart.duration}s`,
+                      fontSize: `${heart.size}px`
+                    }}
+                  >
+                    ♥
+                  </div>
+                ))}
+              </div>
+
+              {/* Battle Arena */}
+              <div className="undertale-battle">
+                {/* Enemy Display */}
+                <div className="enemy-display">
+                  <div className="enemy-sprite">
+                    <img
+                      src="/pics/mochi1.jpg"
+                      alt="Mochi"
+                      className={`enemy-img ${selectedAction ? 'enemy-react' : ''}`}
+                    />
+                    <div className="enemy-hearts">
+                      {[...Array(3)].map((_, i) => (
+                        <span key={i} className="pixel-heart">♥</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="enemy-name">★ MOCHI ★</div>
+                  <div className="enemy-subtitle">LV 99 - The Cutest Cat</div>
+                </div>
+
+                {/* Dialog Box - Undertale Style */}
+                <div className="undertale-dialog">
+                  <div className="dialog-border">
+                    <div className="dialog-inner">
+                      <div className="dialog-text">
+                        {displayedText.split('\n').map((line, i) => (
+                          <p key={i}>{line}</p>
+                        ))}
+                        {isTyping && <span className="cursor-blink">▌</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Bar */}
+                <div className="stats-container">
+                  <div className="stat-row">
+                    <span className="stat-label">MOCHI HP</span>
+                    <div className="hp-bar">
+                      <div className="hp-fill" style={{ width: `${mochiHP}%` }}></div>
+                    </div>
+                    <span className="hp-text">{mochiHP}/100</span>
+                  </div>
+                  <div className="stat-row">
+                    <span className="stat-label love-label">♥ LOVE</span>
+                    <div className="love-bar">
+                      <div className="love-fill" style={{ width: `${lovePoints}%` }}></div>
+                    </div>
+                    <span className="love-text">{lovePoints}/100</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons - Undertale Style */}
+                {valentinePhase !== 'result' && (
+                  <div className="action-buttons">
+                    <button
+                      className="action-btn fight-btn"
+                      onClick={() => handleValentineAction('fight')}
+                      disabled={isTyping}
+                    >
+                      <span className="btn-icon">⚔️</span>
+                      <span className="btn-text">FIGHT</span>
+                    </button>
+                    <button
+                      className="action-btn act-btn"
+                      onClick={() => handleValentineAction('act')}
+                      disabled={isTyping}
+                    >
+                      <span className="btn-icon">💕</span>
+                      <span className="btn-text">ACT</span>
+                    </button>
+                    <button
+                      className="action-btn item-btn"
+                      onClick={() => handleValentineAction('item')}
+                      disabled={isTyping}
+                    >
+                      <span className="btn-icon">🍫</span>
+                      <span className="btn-text">ITEM</span>
+                    </button>
+                    <button
+                      className="action-btn mercy-btn"
+                      onClick={() => handleValentineAction('mercy')}
+                      disabled={isTyping}
+                    >
+                      <span className="btn-icon">💝</span>
+                      <span className="btn-text">MERCY</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Win Screen */}
+                {valentinePhase === 'result' && (
+                  <div className="valentine-result">
+                    <div className="result-hearts">
+                      {[...Array(7)].map((_, i) => (
+                        <span key={i} className="result-heart" style={{ animationDelay: `${i * 0.1}s` }}>♥</span>
+                      ))}
+                    </div>
+                    <h2 className="result-title">
+                      {valentineResult === 'mercy' ? '♥ TRUE LOVE ♥' : '♥ LOVE WINS ♥'}
+                    </h2>
+                    <p className="result-text">
+                      {valentineResult === 'mercy'
+                        ? '¡Has elegido a MOCHI para siempre!'
+                        : '¡MOCHI te ha conquistado con su amor!'}
+                    </p>
+                    <p className="result-message">Feliz San Valentín 💕</p>
+                    <button
+                      className="pixel-btn restart-btn"
+                      onClick={() => {
+                        setValentinePhase('intro')
+                        setDialentText(valentineDialogs.intro)
+                        setLovePoints(0)
+                        setMochiHP(100)
+                        setValentineResult(null)
+                      }}
+                    >
+                      ♥ PLAY AGAIN ♥
+                    </button>
+                  </div>
+                )}
+
+                {/* Player Soul Heart */}
+                <div className="soul-container">
+                  <div className="player-soul">♥</div>
+                  <span className="soul-label">TU ALMA</span>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
       {/* Modals */}
       {showLogin && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 999
-        }}>
-          <div className="container-retro modal-container" style={{ width: '300px', background: 'var(--bg-color)' }}>
-            <div className="box-title" style={{ justifyContent: 'space-between' }}>
+        <div className="overlay">
+          <div className="container-retro modal-container" style={{ width: '300px' }}>
+            <div className="box-title">
               <span>ADMIN LOGIN</span>
-              <button onClick={() => { setShowLogin(false); setLoginError('') }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
+              <button onClick={() => { setShowLogin(false); setLoginError('') }} className="nav-link" style={{ color: '#fff' }}>X</button>
             </div>
             <form onSubmit={handleLogin} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input
@@ -583,15 +782,11 @@ function App() {
       )}
 
       {showUpload && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 999
-        }}>
-          <div className="container-retro" style={{ width: '300px', background: 'var(--bg-color)' }}>
-            <div className="box-title" style={{ justifyContent: 'space-between' }}>
+        <div className="overlay">
+          <div className="container-retro modal-container" style={{ width: '300px' }}>
+            <div className="box-title">
               <span>UPLOAD FILE</span>
-              <button onClick={() => setShowUpload(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
+              <button onClick={() => setShowUpload(false)} className="nav-link" style={{ color: '#fff' }}>X</button>
             </div>
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input type="file" onChange={handleUpload} disabled={uploading} style={{ fontFamily: 'var(--font-ui)' }} />
@@ -602,128 +797,129 @@ function App() {
       )}
 
       {selectedPic && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div className="container-retro" style={{
-            maxWidth: '90%',
-            maxHeight: '95vh',
-            background: 'var(--bg-color)',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'relative' // For absolute arrow positioning
-          }}>
-            <div className="box-title" style={{ justifyContent: 'space-between' }}>
-              <span>MOCHI.EXE</span>
-              <button onClick={() => setSelectedPic(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>X</button>
-            </div>
+        <div className="lightbox-overlay" onClick={() => setSelectedPic(null)}>
+          {(() => {
+            const allItems = [...photos, ...videos];
+            const currentIndex = allItems.findIndex(p => (p.url || `/pics/${p}`) === selectedPic);
+            const prevItem = allItems[currentIndex - 1];
+            const nextItem = allItems[currentIndex + 1];
 
-            <div style={{ padding: '5px', background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            return (
+              <div className="lightbox-wrapper" onClick={(e) => e.stopPropagation()}>
+                {/* Top Bar - Liquid Glass */}
+                <div className="lightbox-topbar">
+                  <div className="lightbox-counter">
+                    <span className="current-index">{currentIndex + 1}</span>
+                    <span className="separator">/</span>
+                    <span className="total-count">{allItems.length}</span>
+                  </div>
+                  <div className="lightbox-actions">
+                    <a
+                      href={selectedPic}
+                      download
+                      className="lightbox-btn"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                    </a>
+                    <button className="lightbox-btn close-btn" onClick={() => setSelectedPic(null)}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
 
-              {/* Navigation Arrows */}
-              {(() => {
-                const allItems = [...photos, ...videos];
-                const currentIndex = allItems.findIndex(p => (p.url || `/pics/${p}`) === selectedPic);
-                const prevItem = allItems[currentIndex - 1];
-                const nextItem = allItems[currentIndex + 1];
+                {/* Main Content */}
+                <div className="lightbox-main">
+                  {/* Navigation Arrows - Desktop */}
+                  {prevItem && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPic(prevItem.url || `/pics/${prevItem}`);
+                      }}
+                      className="lightbox-nav-arrow nav-prev"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                  )}
 
-                return (
-                  <>
-                    {prevItem && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPic(prevItem.url || `/pics/${prevItem}`);
-                        }}
-                        className="simple-hover"
-                        style={{
-                          position: 'absolute',
-                          left: '10px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'var(--card-bg)',
-                          border: '2px solid var(--border-color)',
-                          borderRadius: '50%',
-                          width: '45px',
-                          height: '45px',
-                          fontSize: '12px',
-                          color: 'var(--accent-pink)',
-                          cursor: 'pointer',
-                          zIndex: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontFamily: "'Comic Sans MS', 'Chalkboard SE', sans-serif",
-                          boxShadow: '0 0 10px rgba(255, 105, 180, 0.5)'
-                        }}
-                      >
-                        :3
-                        <span style={{ position: 'absolute', left: '2px', fontSize: '10px' }}>◀</span>
-                      </button>
+                  <div className="lightbox-media-container">
+                    {selectedPic.match(/\.(mp4|mov|webm)$/i) ? (
+                      <video
+                        key={selectedPic}
+                        src={selectedPic}
+                        controls
+                        autoPlay
+                        className="lightbox-media"
+                        playsInline
+                      />
+                    ) : (
+                      <img
+                        src={selectedPic}
+                        alt="Selected"
+                        className="lightbox-media"
+                        draggable={false}
+                      />
                     )}
+                  </div>
 
-                    {nextItem && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPic(nextItem.url || `/pics/${nextItem}`);
-                        }}
-                        className="simple-hover"
-                        style={{
-                          position: 'absolute',
-                          right: '10px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'var(--card-bg)',
-                          border: '2px solid var(--border-color)',
-                          borderRadius: '50%',
-                          width: '45px',
-                          height: '45px',
-                          fontSize: '12px',
-                          color: 'var(--accent-pink)',
-                          cursor: 'pointer',
-                          zIndex: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontFamily: "'Comic Sans MS', 'Chalkboard SE', sans-serif",
-                          boxShadow: '0 0 10px rgba(255, 105, 180, 0.5)'
-                        }}
-                      >
-                        :3
-                        <span style={{ position: 'absolute', right: '2px', fontSize: '10px' }}>▶</span>
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
+                  {nextItem && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPic(nextItem.url || `/pics/${nextItem}`);
+                      }}
+                      className="lightbox-nav-arrow nav-next"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
 
-              {selectedPic.match(/\.(mp4|mov|webm)$/i) ? (
-                <video
-                  key={selectedPic} // Force re-render on change
-                  src={selectedPic}
-                  controls
-                  autoPlay
-                  style={{ maxWidth: '100%', maxHeight: '80vh' }}
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'block'
-                  }}
-                />
-              ) : (
-                <img src={selectedPic} style={{ maxWidth: '100%', maxHeight: '80vh' }} />
-              )}
-              {/* Fallback for video error */}
-              <div style={{ display: 'none', color: '#ff0000', padding: '20px', textAlign: 'center' }}>
-                <p>⚠ VIDEO FORMAT ERROR ⚠</p>
-                <p style={{ fontSize: '12px' }}>Try downloading it to view locally.</p>
+                {/* Bottom Thumbnails Strip */}
+                <div className="lightbox-thumbnails">
+                  <div className="thumbnails-scroll">
+                    {allItems.slice(Math.max(0, currentIndex - 3), Math.min(allItems.length, currentIndex + 4)).map((item, idx) => {
+                      const itemUrl = item.url || `/pics/${item}`;
+                      const actualIndex = Math.max(0, currentIndex - 3) + idx;
+                      return (
+                        <button
+                          key={actualIndex}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPic(itemUrl);
+                          }}
+                          className={`thumbnail-item ${actualIndex === currentIndex ? 'active' : ''}`}
+                        >
+                          {itemUrl.match(/\.(mp4|mov|webm)$/i) ? (
+                            <video src={itemUrl + "#t=0.1"} muted />
+                          ) : (
+                            <img src={itemUrl} alt="" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Mobile Navigation Indicators */}
+                <div className="mobile-nav-hint">
+                  <span>Swipe to navigate</span>
+                </div>
               </div>
-
-              <a href={selectedPic} download className="pixel-btn" style={{ marginTop: '10px', width: '100%', textAlign: 'center' }}>DOWNLOAD</a>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       )}
     </div>
