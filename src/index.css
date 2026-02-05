@@ -1651,9 +1651,13 @@ a:hover {
     max-height: 80vh !important;
   }
 
-  /* Let iOS/Android browser handle video UI/fullscreen */
+  /* Let our UI handle the interaction */
   video::-webkit-media-controls {
-    display: flex !important;
+    display: none !important;
+  }
+
+  video::-webkit-media-controls-enclosure {
+    display: none !important;
   }
 }
 
@@ -2196,13 +2200,8 @@ a:hover {
   color: #000 !important;
 }
 
-/* Lightbox iOS specific fix */
-@supports (-webkit-touch-callout: none) {
-  .lightbox-overlay {
-    background-color: #000 !important;
-    backdrop-filter: none !important;
-  }
-}
+/* Lightbox iOS specific fix removed to keep glass effect */
+
 
 /* Hamburger Button - Liquid Glass */
 .hamburger-btn {

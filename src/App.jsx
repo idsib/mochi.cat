@@ -856,37 +856,35 @@ function App() {
               <div className="lightbox-content-wrapper" onClick={(e) => e.stopPropagation()}>
 
                 {/* Header Controls */}
-                {!isIOS() && (
-                  <div className="lightbox-header">
-                    <div className="lightbox-bg-blur"></div>
-                    <span className="lightbox-count">
-                      {currentIndex + 1} / {allItems.length}
-                    </span>
-                    <div className="lightbox-toggles">
-                      <a
-                        href={selectedPic}
-                        download
-                        className="lightbox-icon-btn"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        ⬇
-                      </a>
-                      <button
-                        className="lightbox-icon-btn close-btn"
-                        onClick={() => setSelectedPic(null)}
-                      >
-                        ✕
-                      </button>
-                    </div>
+                <div className="lightbox-header">
+                  <div className="lightbox-bg-blur"></div>
+                  <span className="lightbox-count">
+                    {currentIndex + 1} / {allItems.length}
+                  </span>
+                  <div className="lightbox-toggles">
+                    <a
+                      href={selectedPic}
+                      download
+                      className="lightbox-icon-btn"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ⬇
+                    </a>
+                    <button
+                      className="lightbox-icon-btn close-btn"
+                      onClick={() => setSelectedPic(null)}
+                    >
+                      ✕
+                    </button>
                   </div>
-                )}
+                </div>
 
                 {/* Main Media Area */}
                 <div className="lightbox-media-area">
                   {/* Previous Button (Hidden on Mobile touch, visible on Desktop) */}
-                  {prevItem && !isIOS() && (
+                  {prevItem && (
                     <button
-                      className="lightbox-nav-btn prev"
+                      className="lightbox-nav-btn prev desktop-only"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(prevItem.url || `/pics/${prevItem}`);
@@ -901,11 +899,16 @@ function App() {
                     {selectedPic.match(/\.(mp4|mov|webm|avi)$/i) ? (
                       <video
                         src={selectedPic}
-                        controls
                         autoPlay
+                        loop
                         playsInline
                         className="lightbox-video native-video"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const v = e.target;
+                          if (v.paused) v.play();
+                          else v.pause();
+                        }}
                       />
                     ) : (
                       <img
@@ -918,9 +921,9 @@ function App() {
                   </div>
 
                   {/* Next Button */}
-                  {nextItem && !isIOS() && (
+                  {nextItem && (
                     <button
-                      className="lightbox-nav-btn next"
+                      className="lightbox-nav-btn next desktop-only"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(nextItem.url || `/pics/${nextItem}`);
@@ -932,56 +935,52 @@ function App() {
                 </div>
 
                 {/* Mobile Tap Zones for Navigation */}
-                {!isIOS() && (
-                  <div className="mobile-tap-zones">
-                    {prevItem && (
-                      <div
-                        className="tap-zone left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPic(prevItem.url || `/pics/${prevItem}`);
-                        }}
-                      />
-                    )}
-                    {nextItem && (
-                      <div
-                        className="tap-zone right"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPic(nextItem.url || `/pics/${nextItem}`);
-                        }}
-                      />
-                    )}
-                  </div>
-                )}
+                <div className="mobile-tap-zones">
+                  {prevItem && (
+                    <div
+                      className="tap-zone left"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPic(prevItem.url || `/pics/${prevItem}`);
+                      }}
+                    />
+                  )}
+                  {nextItem && (
+                    <div
+                      className="tap-zone right"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPic(nextItem.url || `/pics/${nextItem}`);
+                      }}
+                    />
+                  )}
+                </div>
 
                 {/* Bottom Strip (Optional, hidden on small screens) */}
-                {!isIOS() && (
-                  <div className="lightbox-strip">
-                    {allItems.map((item, idx) => {
-                      const itemUrl = item.url || `/pics/${item}`;
-                      // Only show items around current index
-                      if (Math.abs(currentIndex - idx) > 4) return null;
+                <div className="lightbox-strip">
+                  {allItems.map((item, idx) => {
+                    const itemUrl = item.url || `/pics/${item}`;
+                    // Only show items around current index
+                    if (Math.abs(currentIndex - idx) > 4) return null;
 
-                      return (
-                        <div
-                          key={idx}
-                          className={`strip-thumb ${idx === currentIndex ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPic(itemUrl);
-                          }}
-                        >
-                          {itemUrl.match(/\.(mp4|mov|webm|avi)$/i) ? (
-                            <div className="strip-video-marker">▶</div>
-                          ) : (
-                            <img src={itemUrl} alt="" />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                    return (
+                      <div
+                        key={idx}
+                        className={`strip-thumb ${idx === currentIndex ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPic(itemUrl);
+                        }}
+                      >
+                        {itemUrl.match(/\.(mp4|mov|webm|avi)$/i) ? (
+                          <div className="strip-video-marker">▶</div>
+                        ) : (
+                          <img src={itemUrl} alt="" />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
 
               </div>
             );
