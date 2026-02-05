@@ -891,10 +891,10 @@ function App() {
 
                 {/* Main Media Area */}
                 <div className="lightbox-media-area">
-                  {/* Previous Button (Hidden on Mobile touch, visible on Desktop) */}
+                  {/* Previous Button */}
                   {prevItem && (
                     <button
-                      className="lightbox-nav-btn prev desktop-only"
+                      className="lightbox-nav-btn prev"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(prevItem.url || `/pics/${prevItem}`);
@@ -952,7 +952,7 @@ function App() {
                   {/* Next Button */}
                   {nextItem && (
                     <button
-                      className="lightbox-nav-btn next desktop-only"
+                      className="lightbox-nav-btn next"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(nextItem.url || `/pics/${nextItem}`);
@@ -1015,8 +1015,9 @@ function App() {
             );
           })()}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   )
 }
 

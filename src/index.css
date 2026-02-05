@@ -1604,9 +1604,23 @@ a:hover {
 /* Mobile Optimizations */
 @media (max-width: 768px) {
 
-  /* Hide heavy UI controls on mobile */
+  /* Show UI controls on mobile but more compact */
   .lightbox-nav-btn {
-    display: none;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .lightbox-nav-btn.prev {
+    left: 10px;
+  }
+
+  .lightbox-nav-btn.next {
+    right: 10px;
   }
 
   .lightbox-strip {
