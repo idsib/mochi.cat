@@ -15,6 +15,7 @@ function App() {
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isVideoPaused, setIsVideoPaused] = useState(false)
 
   // Touch/swipe state for lightbox and menu
   const [touchStart, setTouchStart] = useState(null)
@@ -90,6 +91,15 @@ function App() {
     }
     setFloatingHearts(hearts)
   }
+
+  // Component to handle Video Control (Play/Pause)
+  const VideoControl = ({ isPaused }) => (
+    <div className={`video-control-hint ${isPaused ? 'show' : ''}`}>
+      <div className="control-circle">
+        {isPaused ? '▶' : '||'}
+      </div>
+    </div>
+  )
 
   // Handle Valentine action
   const handleValentineAction = (action) => {
@@ -897,25 +907,44 @@ function App() {
                   {/* Media Content */}
                   <div className="lightbox-media-box">
                     {selectedPic.match(/\.(mp4|mov|webm|avi)$/i) ? (
-                      <video
-                        src={selectedPic}
-                        autoPlay
-                        loop
-                        playsInline
-                        className="lightbox-video native-video"
+                      <div
+                        className="lightbox-video-container"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const v = e.target;
-                          if (v.paused) v.play();
-                          else v.pause();
+                          const v = e.currentTarget.querySelector('video');
+                          if (v.paused) {
+                            v.play();
+                            setIsVideoPaused(false);
+                          } else {
+                            v.pause();
+                            setIsVideoPaused(true);
+                          }
                         }}
-                      />
+                      >
+                        <video
+                          src={selectedPic}
+                          autoPlay
+                          loop
+                          playsInline
+                          className="lightbox-video native-video"
+                          onPlay={() => setIsVideoPaused(false)}
+                          onPause={() => setIsVideoPaused(true)}
+                        />
+                        <VideoControl isPaused={isVideoPaused} />
+                      </div>
                     ) : (
                       <img
                         src={selectedPic}
                         alt="Full view"
                         className="lightbox-image"
                         draggable={false}
+                        onClick={(e) => {
+                          // In mobile, tap image to go next
+                          if (window.innerWidth <= 768 && nextItem) {
+                            e.stopPropagation();
+                            setSelectedPic(nextItem.url || `/pics/${nextItem}`);
+                          }
+                        }}
                       />
                     )}
                   </div>
