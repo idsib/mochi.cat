@@ -225,8 +225,37 @@ body {
 }
 
 .views-counter {
-  margin-top: auto;
-  font-size: 12px;
+  margin-top: 20px;
+  padding: 15px;
+  text-align: center;
+  border-top: 1px dashed var(--border-color);
+}
+
+.sidebar-gifs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.pixel-mochi-img {
+  display: block;
+  image-rendering: pixelated;
+  width: 48px;
+  animation: pixel-bounce 2s infinite;
+}
+
+.ascii-mochi-gif {
+  width: 48px;
+  height: auto;
+  border-radius: 4px;
+}
+
+.counter-label {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  margin-bottom: 4px;
   color: var(--text-dim);
 }
 
@@ -236,6 +265,7 @@ body {
   font-size: 14px;
   display: inline-block;
   transition: transform 0.2s;
+  letter-spacing: 1px;
 }
 
 .pixel-btn {
@@ -432,6 +462,13 @@ a:hover {
     padding: 8px !important;
   }
 
+  [data-theme="cute"] .box-title span,
+  [data-theme="papyrus"] .box-title span,
+  [data-theme="cute"] .mobile-title,
+  [data-theme="papyrus"] .mobile-title {
+    color: #000 !important;
+  }
+
   .pixel-btn {
     font-size: 9px !important;
     padding: 8px 12px !important;
@@ -499,6 +536,10 @@ a:hover {
   position: relative;
   background: var(--card-bg);
   transition: transform var(--transition-fast);
+  /* Optimization: Only render when in or near viewport */
+  content-visibility: auto;
+  contain-intrinsic-size: 150px 150px;
+  will-change: transform;
 }
 
 .gallery-item:hover {
@@ -513,13 +554,37 @@ a:hover {
   cursor: pointer;
   overflow: hidden;
   position: relative;
+  /* Shimmer effect while loading */
+  background: linear-gradient(90deg,
+      var(--bg-color) 25%,
+      var(--accent-light) 50%,
+      var(--bg-color) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .gallery-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+  /* Preparation for GPU-accelerated scaling */
+  will-change: transform;
+}
+
+/* Stop shimmer once img is loaded (handled by CSS when img covers background) */
+.gallery-img[src] {
+  background: none;
 }
 
 .gallery-item:hover .gallery-img {
@@ -1297,6 +1362,762 @@ a:hover {
   }
 }
 
+/* ========================================
+   MODERN LIGHTBOX STYLES (New Viewer)
+   ======================================== */
+
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lightbox-content-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.lightbox-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  color: #fff;
+}
+
+/* Gradient background for visibility */
+.lightbox-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.lightbox-count {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-toggles {
+  display: flex;
+  gap: 15px;
+}
+
+.lightbox-icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  backdrop-filter: blur(5px);
+  text-decoration: none;
+}
+
+.lightbox-icon-btn:hover {
+  background: var(--accent-pink);
+  border-color: var(--accent-pink);
+  transform: scale(1.1);
+}
+
+/* Media Area */
+.lightbox-media-area {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+
+.lightbox-nav-btn:hover {
+  background: var(--accent-pink);
+}
+
+.lightbox-nav-btn.prev {
+  left: 20px;
+}
+
+.lightbox-nav-btn.next {
+  right: 20px;
+}
+
+.lightbox-media-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0 80px 0;
+  /* Space for bottom strip */
+}
+
+/* Images */
+.lightbox-image {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s;
+}
+
+/* Videos */
+.lightbox-video {
+  max-width: 95%;
+  max-height: 95%;
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Bottom Strip */
+.lightbox-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  z-index: 10;
+  overflow-x: auto;
+}
+
+.strip-thumb {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.strip-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.strip-thumb.active {
+  border-color: var(--accent-pink);
+  transform: scale(1.1);
+}
+
+.strip-thumb.active img {
+  opacity: 1;
+}
+
+.strip-video-marker {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* Mobile Touch Zones */
+.mobile-tap-zones {
+  display: none;
+  /* Hidden on desktop */
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+
+  /* Hide heavy UI controls on mobile */
+  .lightbox-nav-btn {
+    display: none;
+  }
+
+  .lightbox-strip {
+    height: 60px;
+    justify-content: flex-start;
+    /* Scrollable */
+    padding-left: 20px;
+  }
+
+  .strip-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Enable invisible tap zones for simple nav on mobile */
+  .mobile-tap-zones {
+    display: flex;
+    position: absolute;
+    top: 60px;
+    /* Below header */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 4;
+  }
+
+  .tap-zone {
+    width: 30%;
+    /* 30% width on edges for nav */
+    height: 100%;
+    /* background: rgba(255,0,0,0.1);  Debug */
+  }
+
+  .tap-zone.right {
+    margin-left: auto;
+  }
+
+  /* Video Native Behavior Override */
+  .native-video {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 80vh !important;
+  }
+
+  /* Let iOS/Android browser handle video UI/fullscreen */
+  video::-webkit-media-controls {
+    display: flex !important;
+  }
+}
+
+/* ========================================
+   MODERN LIQUID GLASS LOGIN REDESIGN
+   ======================================== */
+
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* GPU acceleration for blur animation */
+  will-change: backdrop-filter, opacity;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+.login-modal {
+  width: 100%;
+  max-width: 360px;
+  background: var(--card-bg);
+  border: 1px solid var(--liquid-glass-border);
+  border-radius: 24px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.15),
+    inset 0 1px 1px var(--liquid-glass-highlight);
+  position: relative;
+  overflow: hidden;
+  transform-origin: center;
+  animation: cardShootUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cardShootUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-header {
+  padding: 25px 25px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-title {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--accent-pink);
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(255, 105, 180, 0.2);
+}
+
+.login-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.login-close:hover {
+  background: #ff4757;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.login-form {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  font-size: 18px;
+  color: var(--accent-pink);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 14px 14px 14px 45px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  color: var(--text-main);
+  transition: all 0.3s;
+  outline: none;
+}
+
+.login-form input:focus {
+  background: #fff;
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 4px rgba(255, 157, 226, 0.2);
+  transform: translateY(-1px);
+}
+
+.login-error {
+  color: #ff4757;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  background: rgba(255, 71, 87, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #ff4757;
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.login-submit-btn {
+  margin-top: 10px;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff1493, #ff69b4);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px rgba(255, 20, 147, 0.2);
+}
+
+.login-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(255, 20, 147, 0.3);
+  filter: brightness(1.1);
+}
+
+.login-submit-btn:active {
+  transform: translateY(1px);
+}
+
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
+  transition: 0.5s;
+}
+
+.login-submit-btn:hover .btn-shine {
+  left: 100%;
+  transition: 0.6s;
+}
+
+/* Theme Adaptation for Login */
+[data-theme="papyrus"] .login-modal {
+  border-radius: 0px;
+  border: 3px solid var(--border-color);
+  box-shadow: 8px 8px 0px rgba(255, 105, 180, 0.5);
+}
+
+[data-theme="papyrus"] .login-form input {
+  border-radius: 0px;
+  border-width: 2px;
+}
+
+[data-theme="papyrus"] .login-submit-btn {
+  border-radius: 0px;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="ascii"] .login-modal {
+  background: #000;
+  border: 1px solid var(--accent-pink);
+  border-radius: 0px;
+}
+
+[data-theme="ascii"] .login-form input {
+  background: #000;
+  border-radius: 0px;
+  color: var(--accent-pink);
+}
+
+/* Responsive centering fix */
+@media (max-width: 480px) {
+  .login-modal {
+    max-width: 100%;
+    border-radius: 20px;
+  }
+}
+
+/* ========================================
+   MODERN LIQUID GLASS UPLOAD REDESIGN
+   ======================================== */
+
+.upload-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: backdrop-filter, opacity;
+}
+
+.upload-modal {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card-bg);
+  border: 1px solid var(--liquid-glass-border);
+  border-radius: 28px;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px var(--liquid-glass-highlight);
+  position: relative;
+  overflow: hidden;
+  animation: cardShootUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.upload-header {
+  padding: 25px 25px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 157, 226, 0.1);
+}
+
+.upload-title {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: #ff1493;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(255, 105, 180, 0.2);
+}
+
+.upload-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.upload-close:hover {
+  background: #ff4757;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.upload-body {
+  padding: 25px;
+}
+
+.upload-zone {
+  width: 100%;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  border: 2px dashed var(--accent-pink);
+  background: rgba(255, 157, 226, 0.05);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.upload-label:hover:not(.disabled) {
+  background: rgba(255, 157, 226, 0.1);
+  border-color: #ff1493;
+  transform: scale(1.02);
+}
+
+.upload-label.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 4px 8px rgba(255, 105, 180, 0.3));
+  animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.upload-text {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.upload-subtext {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.upload-progress-container {
+  margin-top: 25px;
+}
+
+.upload-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  width: 70%;
+  /* Mockup progress */
+  height: 100%;
+  background: linear-gradient(90deg, #ff1493, #ff69b4);
+  animation: loadingSlide 2s infinite ease-in-out;
+}
+
+@keyframes loadingSlide {
+  0% {
+    transform: translateX(-100%);
+    width: 30%;
+  }
+
+  50% {
+    transform: translateX(0);
+    width: 60%;
+  }
+
+  100% {
+    transform: translateX(100%);
+    width: 30%;
+  }
+}
+
+/* Theme Adaptation for Upload */
+[data-theme="papyrus"] .upload-modal {
+  border-radius: 0px;
+  border: 3px solid var(--border-color);
+  box-shadow: 10px 10px 0px rgba(255, 105, 180, 0.5);
+}
+
+[data-theme="papyrus"] .upload-label {
+  border-radius: 0px;
+  border-style: solid;
+  border-width: 2px;
+}
+
+[data-theme="ascii"] .upload-modal {
+  background: #000;
+  border: 1px solid var(--accent-pink);
+  border-radius: 0px;
+}
+
+[data-theme="ascii"] .upload-label {
+  background: #000;
+  border-radius: 0px;
+}
+
+/* Ensure centering on small screens */
+@media (max-height: 500px) {
+  .upload-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
 /* ==========================================
    LIQUID GLASS MOBILE NAVIGATION (iOS 26 Style)
    ========================================== */
@@ -1368,6 +2189,19 @@ a:hover {
   font-size: 12px;
   color: var(--header-text);
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="cute"] .mobile-title,
+[data-theme="papyrus"] .mobile-title {
+  color: #000 !important;
+}
+
+/* Lightbox iOS specific fix */
+@supports (-webkit-touch-callout: none) {
+  .lightbox-overlay {
+    background-color: #000 !important;
+    backdrop-filter: none !important;
+  }
 }
 
 /* Hamburger Button - Liquid Glass */
@@ -1789,6 +2623,8 @@ a:hover {
       0 15px 30px rgba(0, 0, 0, 0.08),
       inset 0 1px 1px rgba(255, 255, 255, 0.7);
     overflow: hidden;
+    /* Hardware acceleration for menu slide */
+    will-change: transform, opacity, backdrop-filter;
   }
 
   .sidebar::before {
@@ -1806,16 +2642,24 @@ a:hover {
     border-radius: 32px 32px 0 0;
   }
 
+  .mobile-swipe-indicator {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .mobile-swipe-indicator {
+      display: block;
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 105, 180, 0.4);
+      border-radius: 2px;
+      margin: 12px auto 0;
+      flex-shrink: 0;
+    }
+  }
+
   .sidebar::after {
-    content: '';
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 4px;
-    background: rgba(255, 105, 180, 0.3);
-    border-radius: 2px;
+    content: none;
   }
 
   .sidebar.mobile-open {
@@ -2139,4 +2983,102 @@ a:hover {
 [data-theme="ascii"] .user-email {
   color: #ff69b4;
   text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
+/* ========================================
+   MODERN LIQUID GLASS DELETE BUTTON
+   ======================================== */
+
+.delete-btn-glass {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 20;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 20, 147, 0.4);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(255, 20, 147, 0.2);
+  padding: 0;
+  line-height: 1;
+}
+
+.delete-btn-glass:hover {
+  background: rgba(255, 20, 147, 0.8);
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+  border-color: #fff;
+}
+
+.delete-btn-glass:active {
+  transform: scale(0.9);
+}
+
+/* Pulse animation for a hint of "danger" (but cute) */
+@keyframes cutePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 20, 147, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 20, 147, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 20, 147, 0);
+  }
+}
+
+.delete-btn-glass:hover {
+  animation: cutePulse 1.5s infinite;
+}
+
+/* Theme Adaptation */
+[data-theme="papyrus"] .delete-btn-glass {
+  border-radius: 0;
+  border: 2px solid #000;
+  background: #ff1493;
+  box-shadow: 4px 4px 0 #000;
+}
+
+[data-theme="papyrus"] .delete-btn-glass:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+  animation: none;
+}
+
+[data-theme="ascii"] .delete-btn-glass {
+  background: #000;
+  border: 1px solid var(--accent-pink);
+  color: var(--accent-pink);
+  border-radius: 0;
+}
+
+[data-theme="ascii"] .delete-btn-glass:hover {
+  background: var(--accent-pink);
+  color: #000;
+  animation: none;
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+  .delete-btn-glass {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 20, 147, 0.6);
+    /* More visible on mobile */
+  }
 }

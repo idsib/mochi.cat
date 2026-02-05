@@ -16,9 +16,10 @@ function App() {
   const [loginError, setLoginError] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Touch/swipe state for lightbox
+  // Touch/swipe state for lightbox and menu
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
+  const [menuTouchStart, setMenuTouchStart] = useState(null)
   const minSwipeDistance = 50
 
   // Valentine Undertale-style states
@@ -255,6 +256,33 @@ function App() {
     document.body.setAttribute('data-theme', theme);
   }, [theme])
 
+  // Helper to detect iOS
+  const isIOS = () => {
+    return [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ].includes(navigator.platform)
+      // Account for iOS 13+ 
+      || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  }
+
+  // Handle media opening
+  const openMedia = (src) => {
+    const isVideo = src.match(/\.(mp4|mov|webm|avi)$/i);
+
+    if (isIOS() && isVideo) {
+      // On iOS, try to use native behavior for videos to avoid duplication
+      // We'll find the video element and attempt to play/fullscreen it
+      // or just open the lightbox but with even MORE minimal UI
+      setSelectedPic(src);
+    } else {
+      setSelectedPic(src);
+    }
+  }
+
   // Separate content
   const videos = pics.filter(p => {
     const src = p.url || `/pics/${p}`
@@ -286,8 +314,20 @@ function App() {
       </div>
 
       {/* Sidebar (Left Frame) */}
-      <aside className={`container-retro sidebar sidebar-mobile ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside
+        className={`container-retro sidebar sidebar-mobile ${mobileMenuOpen ? 'mobile-open' : ''}`}
+        onTouchStart={(e) => setMenuTouchStart(e.targetTouches[0].clientY)}
+        onTouchMove={(e) => {
+          const touchMove = e.targetTouches[0].clientY;
+          if (menuTouchStart && menuTouchStart - touchMove > minSwipeDistance) {
+            setMobileMenuOpen(false);
+            setMenuTouchStart(null);
+          }
+        }}
+        onTouchEnd={() => setMenuTouchStart(null)}
+      >
         <div className="box-title desktop-only">:: MENU ::</div>
+        <div className="mobile-swipe-indicator"></div>
         <div className="sidebar-content">
           <div className="profile-box desktop-only">
             <img
@@ -359,20 +399,16 @@ function App() {
             </div>
           </nav>
 
-          <div className="views-counter desktop-only">
-            <img
-              src="/mochi_pixel.png"
-              alt="pixel mochi"
-              style={{
-                display: 'block',
-                margin: '0 auto 5px auto',
-                imageRendering: 'pixelated',
-                width: '64px',
-                animation: 'pixel-bounce 2s infinite'
-              }}
-            />
-            Total Views:<br />
-            <span className="views-number" style={{ key: views }}>
+          <div className="views-counter">
+            <div className="sidebar-gifs">
+              <img
+                src="/mochi_pixel.png"
+                alt="pixel mochi"
+                className="pixel-mochi-img"
+              />
+            </div>
+            <div className="counter-label">Total Views:</div>
+            <span className="views-number" key={views}>
               {String(views).padStart(6, '0')}
             </span>
           </div>
@@ -445,26 +481,18 @@ function App() {
                             e.stopPropagation()
                             handleDelete(pic)
                           }}
-                          className="pixel-btn"
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            background: 'rgba(255, 0, 0, 0.8)',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            zIndex: 10
-                          }}
+                          className="delete-btn-glass"
                         >
                           🗑️
                         </button>
                       )}
-                      <div onClick={() => setSelectedPic(src)} className="gallery-img-container">
+                      <div onClick={() => openMedia(src)} className="gallery-img-container">
                         <img
                           src={src}
                           alt="mochi"
                           loading="lazy"
+                          decoding="async"
+                          fetchpriority={i < 4 ? "high" : "auto"}
                           className="gallery-img"
                         />
                       </div>
@@ -489,29 +517,19 @@ function App() {
                             e.stopPropagation()
                             handleDelete(pic)
                           }}
-                          className="pixel-btn"
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            background: 'rgba(255, 0, 0, 0.8)',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            zIndex: 10
-                          }}
+                          className="delete-btn-glass"
                         >
                           🗑️
                         </button>
                       )}
-                      <div onClick={() => setSelectedPic(src)} className="gallery-img-container" style={{ background: '#000' }}>
+                      <div onClick={() => openMedia(src)} className="gallery-img-container" style={{ background: '#000' }}>
                         <video
                           src={src + "#t=0.1"}
                           preload="metadata"
                           muted
                           playsInline
-                          onMouseOver={e => e.target.play()}
-                          onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
+                          onMouseOver={e => { if (!isIOS()) e.target.play() }}
+                          onMouseOut={e => { if (!isIOS()) { e.target.pause(); e.target.currentTime = 0; } }}
                           className="gallery-img"
                         />
                         <div style={{
@@ -741,56 +759,86 @@ function App() {
 
       {/* Modals */}
       {showLogin && (
-        <div className="overlay">
-          <div className="container-retro modal-container" style={{ width: '300px' }}>
-            <div className="box-title">
-              <span>ADMIN LOGIN</span>
-              <button onClick={() => { setShowLogin(false); setLoginError('') }} className="nav-link" style={{ color: '#fff' }}>X</button>
+        <div className="login-overlay glass-overlay" onClick={() => setShowLogin(false)}>
+          <div className="login-modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <div className="login-header">
+              <span className="login-title">ADMIN ACCESS</span>
+              <button
+                onClick={() => { setShowLogin(false); setLoginError('') }}
+                className="login-close"
+              >✕</button>
             </div>
-            <form onSubmit={handleLogin} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input
-                type="email"
-                placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-                style={{
-                  fontFamily: 'var(--font-ui)',
-                  padding: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--card-bg)'
-                }}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                style={{
-                  fontFamily: 'var(--font-ui)',
-                  padding: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--card-bg)'
-                }}
-              />
-              {loginError && <div style={{ color: 'red', fontSize: '10px' }}>{loginError}</div>}
-              <button type="submit" className="pixel-btn">LOGIN</button>
+
+            <form onSubmit={handleLogin} className="login-form">
+              <div className="input-group">
+                <span className="input-icon">✉️</span>
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="input-group">
+                <span className="input-icon">🔒</span>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              {loginError && <div className="login-error">{loginError}</div>}
+
+              <button type="submit" className="login-submit-btn">
+                <span>UNLOCK</span>
+                <span className="btn-shine"></span>
+              </button>
             </form>
           </div>
         </div>
       )}
 
       {showUpload && (
-        <div className="overlay">
-          <div className="container-retro modal-container" style={{ width: '300px' }}>
-            <div className="box-title">
-              <span>UPLOAD FILE</span>
-              <button onClick={() => setShowUpload(false)} className="nav-link" style={{ color: '#fff' }}>X</button>
+        <div className="upload-overlay glass-overlay" onClick={() => setShowUpload(false)}>
+          <div className="upload-modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <div className="upload-header">
+              <span className="upload-title">NEW TREASURE</span>
+              <button
+                onClick={() => setShowUpload(false)}
+                className="upload-close"
+              >✕</button>
             </div>
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input type="file" onChange={handleUpload} disabled={uploading} style={{ fontFamily: 'var(--font-ui)' }} />
-              {uploading && <div style={{ textAlign: 'center', color: 'var(--accent-pink)' }}>UPLOADING...</div>}
+
+            <div className="upload-body">
+              <div className="upload-zone">
+                <input
+                  type="file"
+                  id="file-upload"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  className="hidden-input"
+                />
+                <label htmlFor="file-upload" className={`upload-label ${uploading ? 'disabled' : ''}`}>
+                  <div className="upload-icon">☁️</div>
+                  <div className="upload-text">
+                    {uploading ? 'SENDING TO CLOUD...' : 'CLICK TO SELECT FILE'}
+                  </div>
+                  <div className="upload-subtext">Images or Videos allowed</div>
+                </label>
+              </div>
+
+              {uploading && (
+                <div className="upload-progress-container">
+                  <div className="upload-progress-bar">
+                    <div className="upload-progress-fill"></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -805,118 +853,136 @@ function App() {
             const nextItem = allItems[currentIndex + 1];
 
             return (
-              <div className="lightbox-wrapper" onClick={(e) => e.stopPropagation()}>
-                {/* Top Bar - Liquid Glass */}
-                <div className="lightbox-topbar">
-                  <div className="lightbox-counter">
-                    <span className="current-index">{currentIndex + 1}</span>
-                    <span className="separator">/</span>
-                    <span className="total-count">{allItems.length}</span>
-                  </div>
-                  <div className="lightbox-actions">
-                    <a
-                      href={selectedPic}
-                      download
-                      className="lightbox-btn"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                    </a>
-                    <button className="lightbox-btn close-btn" onClick={() => setSelectedPic(null)}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+              <div className="lightbox-content-wrapper" onClick={(e) => e.stopPropagation()}>
 
-                {/* Main Content */}
-                <div className="lightbox-main">
-                  {/* Navigation Arrows - Desktop */}
-                  {prevItem && (
+                {/* Header Controls */}
+                {!isIOS() && (
+                  <div className="lightbox-header">
+                    <div className="lightbox-bg-blur"></div>
+                    <span className="lightbox-count">
+                      {currentIndex + 1} / {allItems.length}
+                    </span>
+                    <div className="lightbox-toggles">
+                      <a
+                        href={selectedPic}
+                        download
+                        className="lightbox-icon-btn"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        ⬇
+                      </a>
+                      <button
+                        className="lightbox-icon-btn close-btn"
+                        onClick={() => setSelectedPic(null)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Main Media Area */}
+                <div className="lightbox-media-area">
+                  {/* Previous Button (Hidden on Mobile touch, visible on Desktop) */}
+                  {prevItem && !isIOS() && (
                     <button
+                      className="lightbox-nav-btn prev"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(prevItem.url || `/pics/${prevItem}`);
                       }}
-                      className="lightbox-nav-arrow nav-prev"
                     >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="15 18 9 12 15 6" />
-                      </svg>
+                      ❮
                     </button>
                   )}
 
-                  <div className="lightbox-media-container">
-                    {selectedPic.match(/\.(mp4|mov|webm)$/i) ? (
+                  {/* Media Content */}
+                  <div className="lightbox-media-box">
+                    {selectedPic.match(/\.(mp4|mov|webm|avi)$/i) ? (
                       <video
-                        key={selectedPic}
                         src={selectedPic}
                         controls
                         autoPlay
-                        className="lightbox-media"
                         playsInline
+                        className="lightbox-video native-video"
+                        onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
                       <img
                         src={selectedPic}
-                        alt="Selected"
-                        className="lightbox-media"
+                        alt="Full view"
+                        className="lightbox-image"
                         draggable={false}
                       />
                     )}
                   </div>
 
-                  {nextItem && (
+                  {/* Next Button */}
+                  {nextItem && !isIOS() && (
                     <button
+                      className="lightbox-nav-btn next"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPic(nextItem.url || `/pics/${nextItem}`);
                       }}
-                      className="lightbox-nav-arrow nav-next"
                     >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                      ❯
                     </button>
                   )}
                 </div>
 
-                {/* Bottom Thumbnails Strip */}
-                <div className="lightbox-thumbnails">
-                  <div className="thumbnails-scroll">
-                    {allItems.slice(Math.max(0, currentIndex - 3), Math.min(allItems.length, currentIndex + 4)).map((item, idx) => {
+                {/* Mobile Tap Zones for Navigation */}
+                {!isIOS() && (
+                  <div className="mobile-tap-zones">
+                    {prevItem && (
+                      <div
+                        className="tap-zone left"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPic(prevItem.url || `/pics/${prevItem}`);
+                        }}
+                      />
+                    )}
+                    {nextItem && (
+                      <div
+                        className="tap-zone right"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPic(nextItem.url || `/pics/${nextItem}`);
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Bottom Strip (Optional, hidden on small screens) */}
+                {!isIOS() && (
+                  <div className="lightbox-strip">
+                    {allItems.map((item, idx) => {
                       const itemUrl = item.url || `/pics/${item}`;
-                      const actualIndex = Math.max(0, currentIndex - 3) + idx;
+                      // Only show items around current index
+                      if (Math.abs(currentIndex - idx) > 4) return null;
+
                       return (
-                        <button
-                          key={actualIndex}
+                        <div
+                          key={idx}
+                          className={`strip-thumb ${idx === currentIndex ? 'active' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedPic(itemUrl);
                           }}
-                          className={`thumbnail-item ${actualIndex === currentIndex ? 'active' : ''}`}
                         >
-                          {itemUrl.match(/\.(mp4|mov|webm)$/i) ? (
-                            <video src={itemUrl + "#t=0.1"} muted />
+                          {itemUrl.match(/\.(mp4|mov|webm|avi)$/i) ? (
+                            <div className="strip-video-marker">▶</div>
                           ) : (
                             <img src={itemUrl} alt="" />
                           )}
-                        </button>
-                      );
+                        </div>
+                      )
                     })}
                   </div>
-                </div>
+                )}
 
-                {/* Mobile Navigation Indicators */}
-                <div className="mobile-nav-hint">
-                  <span>Swipe to navigate</span>
-                </div>
               </div>
             );
           })()}
