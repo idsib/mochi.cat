@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { supabase } from './supabase'
-import UndertaleGame from './UndertaleGame'
+
+const UndertaleGame = lazy(() => import('./UndertaleGame'))
 
 function App() {
   const [pics, setPics] = useState([])
@@ -202,15 +203,16 @@ function App() {
     return url
   }
 
-  // Separate content
-  const videos = pics.filter(p => {
+  // Precompute stable lists for the gallery categories to avoid unnecessary re-filtering
+  const videos = useMemo(() => pics.filter(p => {
     const src = p.url || `/pics/${p}`
-    return src.match(/\.(mp4|mov|webm|avi)$/i) // Multiple video formats
-  })
-  const photos = pics.filter(p => {
+    return src.match(/\.(mp4|mov|webm|avi)$/i)
+  }), [pics])
+
+  const photos = useMemo(() => pics.filter(p => {
     const src = p.url || `/pics/${p}`
     return !src.match(/\.(mp4|mov|webm|avi)$/i)
-  })
+  }), [pics])
 
   return (
     <div className="app-container">
@@ -523,9 +525,11 @@ function App() {
             </div>
           )}
 
-          {/* Valentine Undertale-Style Section */}
+          {/* Valentine Undertale-Style Section - Lazy Loaded */}
           {currentPage === 'valentine' && (
-            <UndertaleGame />
+            <Suspense fallback={<div className="loading-retro">LOADING GAME...</div>}>
+              <UndertaleGame isIOS={isIOS} />
+            </Suspense>
           )}
 
         </div>
@@ -698,10 +702,12 @@ function App() {
                       </div>
                     ) : (
                       <img
-                        src={selectedPic}
+                        src={getOptimizedUrl(selectedPic, 1200)}
                         alt="Full view"
                         className="lightbox-image"
                         draggable={false}
+                        fetchPriority="high"
+                        decoding="async"
                         onClick={(e) => {
                           // In mobile, tap image to go next
                           if (window.innerWidth <= 768 && nextItem) {
@@ -768,7 +774,7 @@ function App() {
                         {itemUrl.match(/\.(mp4|mov|webm|avi)$/i) ? (
                           <div className="strip-video-marker">▶</div>
                         ) : (
-                          <img src={itemUrl} alt="" />
+                          <img src={getOptimizedUrl(itemUrl, 100)} alt="" loading="lazy" />
                         )}
                       </div>
                     )

@@ -107,6 +107,27 @@ const UndertaleGame = ({ onWin, isIOS }) => {
         }, 30)
     }
 
+    // Lock scroll and gestures when playing (Lateral and Vertical)
+    useEffect(() => {
+        if (phase === 'defense' || phase === 'attack_select') {
+            document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
+            document.body.style.overscrollBehavior = 'none';
+            document.documentElement.style.overscrollBehavior = 'none';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.body.style.overscrollBehavior = '';
+            document.documentElement.style.overscrollBehavior = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            document.body.style.overscrollBehavior = '';
+            document.documentElement.style.overscrollBehavior = '';
+        }
+    }, [phase]);
+
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden) {
@@ -341,34 +362,47 @@ const UndertaleGame = ({ onWin, isIOS }) => {
         }
     }, [phase])
 
-    // Touch Controls Logic
-    const handleTouchStart = (e) => {
-        if (phase !== 'defense') return
-        const touch = e.touches[0]
-        touchStartRef.current = { x: touch.clientX, y: touch.clientY }
-    }
+    // Touch Controls Logic - Non-passive listeners for mobile scroll lock
+    useEffect(() => {
+        const box = boxRef.current;
+        if (!box) return;
 
-    const handleTouchMove = (e) => {
-        if (phase !== 'defense' || !touchStartRef.current) return
-        // Prevent default scroling inside the game box
-        if (e.cancelable) e.preventDefault();
+        const onTouchMove = (e) => {
+            if (phase !== 'defense' && phase !== 'attack_select') return;
+            // ESSENTIAL: Block native scroll. Must be a non-passive listener.
+            if (e.cancelable) e.preventDefault();
 
-        const touch = e.touches[0]
-        const deltaX = touch.clientX - touchStartRef.current.x
-        const deltaY = touch.clientY - touchStartRef.current.y
+            if (phase === 'defense' && touchStartRef.current) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartRef.current.x;
+                const deltaY = touch.clientY - touchStartRef.current.y;
 
-        // Mover alma basado en el desplazamiento del dedo (Joystick relativo)
-        setSoulPos(prev => {
-            const sensitivity = 0.2
-            return {
-                x: Math.max(0, Math.min(100, prev.x + deltaX * sensitivity)),
-                y: Math.max(0, Math.min(100, prev.y + deltaY * sensitivity))
+                setSoulPos(prev => {
+                    const sensitivity = 0.25;
+                    return {
+                        x: Math.max(0, Math.min(100, prev.x + deltaX * sensitivity)),
+                        y: Math.max(0, Math.min(100, prev.y + deltaY * sensitivity))
+                    }
+                });
+                touchStartRef.current = { x: touch.clientX, y: touch.clientY };
             }
-        })
+        };
 
-        // Actualizar referencia para movimiento continuo suave
-        touchStartRef.current = { x: touch.clientX, y: touch.clientY }
-    }
+        const onTouchStart = (e) => {
+            if (phase === 'defense') {
+                const touch = e.touches[0];
+                touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+            }
+        };
+
+        box.addEventListener('touchstart', onTouchStart, { passive: false });
+        box.addEventListener('touchmove', onTouchMove, { passive: false });
+
+        return () => {
+            box.removeEventListener('touchstart', onTouchStart);
+            box.removeEventListener('touchmove', onTouchMove);
+        };
+    }, [phase]);
 
     const handleTouchEnd = () => {
         touchStartRef.current = null
@@ -421,10 +455,8 @@ const UndertaleGame = ({ onWin, isIOS }) => {
                 <div
                     className="dialog-box-container"
                     ref={boxRef}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    style={{ touchAction: phase === 'defense' ? 'none' : 'auto' }}
+                    style={{ touchAction: 'none' }}
                 >
                     {phase === 'defense' ? (
                         <div className="bullet-hell-box">
