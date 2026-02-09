@@ -1,8 +1,18 @@
+-- =============================================================================
+-- MOCHI.CAT - Supabase Setup
+-- =============================================================================
+
+-- 1. Crear tabla 'pics' con bigint IDENTITY (evita fragmentación de índices con UUID aleatorio)
+-- Referencia: schema-primary-keys.md - "Random UUIDs (v4) cause index fragmentation"
 create table pics (
-  id uuid default gen_random_uuid() primary key,
+  id bigint generated always as identity primary key,
   url text not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamptz default now() not null
 );
+
+-- Índice para queries ordenadas por fecha (común en galerías)
+-- Referencia: query-missing-indexes.md - "100-1000x faster queries on large tables"
+create index pics_created_at_idx on pics (created_at desc);
 
 -- 2. Habilitar seguridad a nivel de fila (RLS)
 alter table pics enable row level security;
@@ -49,15 +59,14 @@ create policy "Solo admins pueden eliminar archivos"
   to authenticated
   using ( bucket_id = 'mochi-uploads' );
 
--- 6. Crear tabla de estadísticas (Hit Counter)
+-- 6. Crear tabla de estadísticas (Hit Counter) con IDENTITY
 create table site_stats (
-  id int primary key default 1,
+  id int generated always as identity primary key,
   views bigint default 0
 );
 
--- Insertar fila inicial
-insert into site_stats (id, views) values (1, 0)
-on conflict (id) do nothing;
+-- Insertar fila inicial (usar OVERRIDING para IDENTITY)
+insert into site_stats (views) values (0);
 
 -- Habilitar RLS
 alter table site_stats enable row level security;
@@ -69,14 +78,21 @@ create policy "Todos pueden ver visitas"
   using ( true );
 
 -- Función para incrementar visitas de forma atómica
+-- Referencia: security-rls-performance.md - "Use security definer functions"
 create or replace function increment_views()
-returns void as $$
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
 begin
-  update site_stats
+  update public.site_stats
   set views = views + 1
   where id = 1;
 end;
-$$ language plpgsql;
+$$;
 
--- Permitir ejecutar la función a anónimos (si es necesario, aunque RPC suele ser público por defecto en configuraciones simples, mejor asegurar)
+-- Permitir ejecutar la función a anónimos
+grant execute on function increment_views() to anon;
+
 -- NOTA: En Supabase, las funciones RPC son ejecutables por 'public' por defecto.

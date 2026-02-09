@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "8bitoperator";
+  src: url("https://db.onlinewebfonts.com/t/117bd2ab8652c3570224d92ec0afe4f3.woff2") format("woff2");
+}
+
 :root {
   --bg-color: #ffe6f2;
   --sidebar-bg: #fff0f5;
@@ -6,7 +11,7 @@
   --accent-pink: #ff9de2;
   --accent-light: #ffcceb;
   --border-color: #ffb6c1;
-  --font-pixel: 'Press Start 2P', cursive;
+  --font-pixel: '8bitoperator', monospace;
   --font-ui: 'VT323', monospace;
   --card-bg: rgba(255, 255, 255, 0.9);
   --grid-color: rgba(255, 182, 193, 0.4);
@@ -56,9 +61,9 @@
   --accent-pink: #ff1493;
   --accent-light: #33001a;
   --border-color: #ff69b4;
-  --font-pixel: 'Share Tech Mono', monospace;
+  --font-pixel: 'Geist Mono', 'Share Tech Mono', monospace;
   /* Better ASCII font */
-  --font-ui: 'Share Tech Mono', monospace;
+  --font-ui: 'Geist Mono', 'Share Tech Mono', monospace;
   --card-bg: #000000;
   --grid-color: rgba(255, 105, 180, 0.2);
   --box-shadow: none;
@@ -691,7 +696,7 @@ a:hover {
   border: 4px solid #fff;
   border-radius: 0;
   overflow: hidden;
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
 }
 
 .valentine-container.shake {
@@ -783,26 +788,53 @@ a:hover {
   object-fit: cover;
   border: 4px solid #fff;
   border-radius: 50%;
+  /* Mantener circular o hacerlo cuadrado para más retro */
   image-rendering: pixelated;
-  transition: transform 0.3s, filter 0.3s;
   box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+  animation: enemy-float 3s ease-in-out infinite;
 }
 
-.enemy-img.enemy-react {
-  animation: enemy-bounce 0.5s ease;
-}
-
-@keyframes enemy-bounce {
+@keyframes enemy-float {
 
   0%,
   100% {
-    transform: scale(1);
+    transform: translateY(0) scale(1);
   }
 
   50% {
-    transform: scale(1.1) rotate(5deg);
+    transform: translateY(-10px) scale(1.02);
   }
 }
+
+.enemy-img.enemy-react {
+  animation: enemy-shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes enemy-shake {
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+
 
 .enemy-hearts {
   position: absolute;
@@ -831,7 +863,7 @@ a:hover {
 }
 
 .enemy-name {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 14px;
   color: #fff;
   margin-top: 10px;
@@ -839,7 +871,7 @@ a:hover {
 }
 
 .enemy-subtitle {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 8px;
   color: #ff69b4;
   margin-top: 5px;
@@ -865,7 +897,7 @@ a:hover {
 }
 
 .dialog-text {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 10px;
   color: #fff;
   line-height: 1.8;
@@ -910,7 +942,7 @@ a:hover {
 }
 
 .stat-label {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 8px;
   color: #ff6b35;
   min-width: 80px;
@@ -949,7 +981,7 @@ a:hover {
 
 .hp-text,
 .love-text {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 8px;
   color: #fff;
   min-width: 50px;
@@ -957,101 +989,151 @@ a:hover {
 }
 
 /* Action Buttons - Undertale Style */
+/* Action Buttons - Undertale Style */
 .action-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  display: flex;
+  gap: 20px;
   width: 100%;
-  max-width: 500px;
-  margin-top: 10px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 15px 10px;
   background: #000;
-  border: 3px solid #ff6b35;
-  color: #fff;
-  font-family: 'Press Start 2P', monospace;
+  border: 2px solid #ff9900;
+  color: #ff9900;
+  font-family: '8bitoperator', monospace;
+  font-size: 14px;
+  padding: 15px 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.1s;
   position: relative;
-  overflow: hidden;
+  width: 140px;
+  text-transform: uppercase;
 }
 
-.action-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.action-btn:hover::before {
-  left: 100%;
-}
-
-.action-btn:hover {
-  background: #ff6b35;
+.action-btn:hover:not(:disabled),
+.action-btn:focus:not(:disabled) {
+  background: #ff9900;
+  color: #000;
+  border-color: #ffd700;
+  outline: none;
   transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
-}
-
-.action-btn:active {
-  transform: scale(0.95);
 }
 
 .action-btn:disabled {
-  opacity: 0.5;
+  border-color: #555;
+  color: #555;
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.fight-btn {
-  border-color: #ff4444;
+/* Icono del corazón (Soul) que aparece al hacer hover */
+.action-btn::before {
+  content: '❤';
+  color: #ff0000;
+  position: absolute;
+  left: 10px;
+  opacity: 0;
+  font-size: 12px;
+  transition: opacity 0.1s;
 }
 
-.fight-btn:hover {
-  background: #ff4444;
+.action-btn:hover::before,
+.action-btn:focus::before {
+  opacity: 1;
 }
 
-.act-btn {
-  border-color: #ff69b4;
+/* Ocultar el icono original cuando aparece el alma */
+.action-btn:hover .btn-icon,
+.action-btn:focus .btn-icon {
+  visibility: hidden;
 }
 
-.act-btn:hover {
-  background: #ff69b4;
+.btn-icon,
+.btn-text {
+  pointer-events: none;
+  /* Asegurar que no interfieran con el hover */
 }
 
-.item-btn {
-  border-color: #ffa500;
+/* Colores específicos por botón */
+.action-btn.fight-btn {
+  border-color: #ff4500;
+  color: #ff4500;
 }
 
-.item-btn:hover {
-  background: #ffa500;
+.action-btn.fight-btn:hover:not(:disabled) {
+  background: #ff4500;
+  color: #fff;
+  border-color: #ff6347;
 }
 
-.mercy-btn {
+.action-btn.act-btn {
+  border-color: #00bfff;
+  color: #00bfff;
+}
+
+.action-btn.act-btn:hover:not(:disabled) {
+  background: #00bfff;
+  color: #fff;
+  border-color: #87ceeb;
+}
+
+.action-btn.item-btn {
+  border-color: #32cd32;
+  color: #32cd32;
+}
+
+.action-btn.item-btn:hover:not(:disabled) {
+  background: #32cd32;
+  color: #fff;
+  border-color: #90ee90;
+}
+
+.action-btn.mercy-btn {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+.action-btn.mercy-btn:hover:not(:disabled) {
+  background: #ffd700;
+  color: #000;
   border-color: #ffff00;
 }
 
-.mercy-btn:hover {
-  background: #ffff00;
-  color: #000;
-}
-
-.btn-icon {
+/* Feedback flotante (Damage/Love numbers) */
+.float-text {
+  position: absolute;
+  font-family: '8bitoperator', monospace;
+  font-weight: bold;
+  pointer-events: none;
+  animation: float-up-fade 2s ease-out forwards;
+  z-index: 100;
+  text-shadow: 2px 2px 0 #000;
   font-size: 20px;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
 }
 
-.btn-text {
-  font-size: 8px;
+@keyframes float-up-fade {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  30% {
+    transform: translate(-50%, -100px) scale(1.5);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -150px) scale(1);
+    opacity: 0;
+  }
 }
 
 /* Valentine Result Screen */
@@ -1101,7 +1183,7 @@ a:hover {
 }
 
 .result-title {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 20px;
   color: #ff1493;
   text-shadow: 3px 3px 0 #ff69b4, 0 0 20px #ff1493;
@@ -1120,14 +1202,14 @@ a:hover {
 }
 
 .result-text {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 10px;
   color: #fff;
   margin-bottom: 10px;
 }
 
 .result-message {
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 12px;
   color: #ff69b4;
   margin-top: 15px;
@@ -1194,7 +1276,7 @@ a:hover {
 
 .soul-label {
   display: block;
-  font-family: 'Press Start 2P', monospace;
+  font-family: '8bitoperator', monospace;
   font-size: 8px;
   color: #fff;
   margin-top: 5px;
@@ -3155,4 +3237,473 @@ a:hover {
     background: rgba(255, 20, 147, 0.6);
     /* More visible on mobile */
   }
+}
+
+/* Undertale Game Component Styles */
+.undertale-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  gap: 20px;
+  position: relative;
+  font-family: '8bitoperator', monospace;
+  color: #fff;
+  padding-bottom: 50px;
+}
+
+.undertale-battle-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Enemy Section */
+.enemy-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.enemy-sprite-pixel {
+  width: 200px;
+  height: 200px;
+  image-rendering: pixelated;
+  object-fit: contain;
+  animation: enemy-float 3s ease-in-out infinite;
+}
+
+.enemy-sprite-pixel.attacking {
+  animation: enemy-shake 0.2s infinite;
+}
+
+.enemy-hp-bar {
+  width: 150px;
+  height: 20px;
+  background: #333;
+  border: 2px solid #fff;
+}
+
+.enemy-hp-fill {
+  height: 100%;
+  background: #ff69b4;
+}
+
+/* Dialog & Bullet Hell Box */
+.dialog-box-container {
+  width: 100%;
+  height: 200px;
+  border: 4px solid #fff;
+  background: #000;
+  padding: 20px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.dialog-text-pixel {
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: #fff;
+}
+
+/* Bullet Hell Area */
+.bullet-hell-box {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border: 2px solid #555;
+  overflow: hidden;
+  background: #000;
+}
+
+.player-soul {
+  position: absolute;
+  color: #ff0000;
+  font-size: 16px;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  line-height: 1;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.player-soul.blink {
+  animation: soul-blink 0.1s infinite alternate;
+}
+
+@keyframes soul-blink {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.3;
+  }
+}
+
+.projectile {
+  position: absolute;
+  font-size: 14px;
+  user-select: none;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 5;
+}
+
+/* Player Stats */
+.player-stats-row {
+  display: flex;
+  gap: 20px;
+  color: var(--text-main);
+  font-size: 14px;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.player-hp-bar {
+  width: 100px;
+  height: 20px;
+  background: #ff0000;
+  border: 2px solid var(--text-main);
+}
+
+.player-hp-fill {
+  height: 100%;
+  background: #00ff04;
+  transition: width 0.2s;
+}
+
+.stat-name {
+  font-weight: bold;
+}
+
+.stat-hp-label {
+  font-size: 10px;
+}
+
+.stat-hp-text {
+  font-size: 10px;
+}
+
+/* Actions Row overrides */
+.undertale-actions-row {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Game Over Screen */
+.gameover-screen {
+  background: #000 !important;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.soul-broken {
+  font-size: 64px;
+  margin: 30px auto;
+  animation: soul-break 2s forwards;
+}
+
+@keyframes soul-break {
+  0% {
+    transform: scale(1);
+  }
+
+  20% {
+    transform: scale(1.2) rotate(-10deg);
+  }
+
+  40% {
+    transform: scale(1.2) rotate(10deg);
+  }
+
+  50% {
+    opacity: 1;
+    filter: grayscale(0);
+  }
+
+  100% {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    transform: translateY(20px) rotate(45deg);
+  }
+}
+
+/* Undertale Overlay & Popup Styles */
+.undertale-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: auto;
+  min-height: 250px;
+  background: #000;
+  border: 4px solid #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 0 100vh rgba(0, 0, 0, 0.85);
+  /* Darken everything else */
+}
+
+.undertale-overlay h1 {
+  font-family: '8bitoperator', monospace;
+  font-size: 32px;
+  margin-bottom: 20px;
+  text-shadow: 4px 4px 0 #333;
+}
+
+.undertale-overlay p {
+  font-family: '8bitoperator', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #fff;
+  margin-bottom: 30px;
+  max-width: 80%;
+}
+
+.undertale-big-btn {
+  background: #000;
+  border: 3px solid #ff9900;
+  color: #ff9900;
+  font-family: '8bitoperator', monospace;
+  font-size: 14px;
+  padding: 20px 40px;
+  cursor: pointer;
+  text-transform: uppercase;
+  position: relative;
+  transition: all 0.1s;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.undertale-big-btn:hover {
+  background: #ff9900;
+  color: #000;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+}
+
+.undertale-big-btn:hover::before {
+  content: '❤';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff0000;
+  font-size: 16px;
+  animation: heart-beat 0.5s infinite alternate;
+}
+
+.gameover-text {
+  color: #ff0000;
+  text-shadow: 2px 2px 0 #500;
+}
+
+/* Profile Page Styles */
+.profile-page-container {
+  padding: 20px;
+  animation: profileFadeIn 0.5s ease;
+}
+
+.profile-card {
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 20px;
+}
+
+.profile-large-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-pink);
+  object-fit: cover;
+  box-shadow: 0 0 15px var(--accent-light);
+}
+
+.profile-main-info h2 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  color: var(--text-main);
+  font-size: 24px;
+}
+
+.profile-tagline {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 5px;
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: var(--font-pixel);
+}
+
+.detail-value {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.profile-bio,
+.profile-stats-section {
+  margin-bottom: 30px;
+}
+
+.profile-bio h3,
+.profile-stats-section h3 {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  color: var(--accent-pink);
+  margin-bottom: 15px;
+}
+
+.profile-bio p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.stat-bar-container {
+  margin-bottom: 15px;
+}
+
+.stat-label-group {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.stat-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  transition: width 1s ease-in-out;
+}
+
+@keyframes profileFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Attack Mini-game Styles */
+.attack-slider-box {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border: 2px solid #555;
+}
+
+.strike-target {
+  width: 20px;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid #fff;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.strike-bar {
+  width: 6px;
+  height: 160px;
+  background: #ffff00;
+  box-shadow: 0 0 10px #ffff00;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  z-index: 2;
+}
+
+.strike-hint {
+  position: absolute;
+  bottom: 20px;
+  color: #fff;
+  font-size: 10px;
+  font-family: '8bitoperator', monospace;
+  animation: blink 1s infinite alternate;
 }

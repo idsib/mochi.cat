@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
+import UndertaleGame from './UndertaleGame'
 
 function App() {
   const [pics, setPics] = useState([])
@@ -23,75 +24,6 @@ function App() {
   const [menuTouchStart, setMenuTouchStart] = useState(null)
   const minSwipeDistance = 50
 
-  // Valentine Undertale-style states
-  const [valentinePhase, setValentinePhase] = useState('intro') // intro, battle, result
-  const [dialogText, setDialentText] = useState('')
-  const [displayedText, setDisplayedText] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const [selectedAction, setSelectedAction] = useState(null)
-  const [heartPosition, setHeartPosition] = useState({ x: 50, y: 50 })
-  const [floatingHearts, setFloatingHearts] = useState([])
-  const [valentineResult, setValentineResult] = useState(null)
-  const [mochiHP, setMochiHP] = useState(100)
-  const [lovePoints, setLovePoints] = useState(0)
-  const [shakeScreen, setShakeScreen] = useState(false)
-
-  // Valentine dialog messages
-  const valentineDialogs = {
-    intro: "* MOCHI aparece!\n* Parece que quiere algo...\n* ¿Qué harás?",
-    flirt: "* Le dices a MOCHI que es muy linda...\n* MOCHI ronronea felizmente!\n* +20 LOVE POINTS!",
-    pet: "* Acaricias suavemente a MOCHI...\n* ¡Sus ojos brillan con amor!\n* +30 LOVE POINTS!",
-    treat: "* Le das un treat a MOCHI...\n* ¡MOCHI está encantada!\n* +25 LOVE POINTS!",
-    mercy: "* Decides quedarte con MOCHI para siempre...\n* ¡MOCHI te acepta!\n* ♥ TRUE LOVE ENDING ♥",
-    attack: "* No puedes atacar a algo tan adorable...\n* MOCHI te mira con ojos tiernos.\n* Tu SOUL se derrite...",
-    win: "* ¡Feliz San Valentín!\n* MOCHI te quiere mucho!\n* ♥ LOVE WINS ♥"
-  }
-
-  // Typewriter effect for dialog
-  useEffect(() => {
-    if (!dialogText) return
-    setIsTyping(true)
-    setDisplayedText('')
-    let i = 0
-    const interval = setInterval(() => {
-      if (i < dialogText.length) {
-        setDisplayedText(prev => prev + dialogText[i])
-        i++
-      } else {
-        setIsTyping(false)
-        clearInterval(interval)
-      }
-    }, 30)
-    return () => clearInterval(interval)
-  }, [dialogText])
-
-  // Start valentine dialog
-  useEffect(() => {
-    if (currentPage === 'valentine') {
-      setValentinePhase('intro')
-      setDialentText(valentineDialogs.intro)
-      setLovePoints(0)
-      setMochiHP(100)
-      setValentineResult(null)
-      startFloatingHearts()
-    }
-  }, [currentPage])
-
-  // Floating hearts animation
-  const startFloatingHearts = () => {
-    const hearts = []
-    for (let i = 0; i < 15; i++) {
-      hearts.push({
-        id: i,
-        x: Math.random() * 100,
-        delay: Math.random() * 5,
-        duration: 3 + Math.random() * 4,
-        size: 10 + Math.random() * 20
-      })
-    }
-    setFloatingHearts(hearts)
-  }
-
   // Component to handle Video Control (Play/Pause)
   const VideoControl = ({ isPaused }) => (
     <div className={`video-control-hint ${isPaused ? 'show' : ''}`}>
@@ -101,41 +33,8 @@ function App() {
     </div>
   )
 
-  // Handle Valentine action
-  const handleValentineAction = (action) => {
-    setSelectedAction(action)
-    setShakeScreen(true)
-    setTimeout(() => setShakeScreen(false), 300)
 
-    if (action === 'fight') {
-      setDialentText(valentineDialogs.attack)
-      setMochiHP(prev => Math.max(prev - 0, prev))
-    } else if (action === 'act') {
-      const actOptions = ['flirt', 'pet', 'treat']
-      const randomAct = actOptions[Math.floor(Math.random() * actOptions.length)]
-      setDialentText(valentineDialogs[randomAct])
-      setLovePoints(prev => {
-        const newPoints = prev + (randomAct === 'pet' ? 30 : randomAct === 'flirt' ? 20 : 25)
-        if (newPoints >= 100) {
-          setTimeout(() => {
-            setValentinePhase('result')
-            setDialentText(valentineDialogs.win)
-            setValentineResult('love')
-          }, 2000)
-        }
-        return Math.min(newPoints, 100)
-      })
-    } else if (action === 'item') {
-      setDialentText("* Usas un ❤️ Chocolate...\n* MOCHI está muy feliz!\n* +15 LOVE POINTS!")
-      setLovePoints(prev => Math.min(prev + 15, 100))
-    } else if (action === 'mercy') {
-      setDialentText(valentineDialogs.mercy)
-      setTimeout(() => {
-        setValentinePhase('result')
-        setValentineResult('mercy')
-      }, 3000)
-    }
-  }
+
 
   useEffect(() => {
     // 1. Load Gallery
@@ -293,6 +192,17 @@ function App() {
     }
   }
 
+  // Helper to optimize Supabase URLs for thumbnails
+  const getOptimizedUrl = (url, width = 400) => {
+    if (!url) return ''
+    // Check if it's a Supabase Storage URL
+    if (url.includes('supabase.co/storage/v1/object/public')) {
+      // Use Supabase Image Transformation
+      return `${url}?width=${width}&resize=cover&quality=60&format=webp`
+    }
+    return url
+  }
+
   // Separate content
   const videos = pics.filter(p => {
     const src = p.url || `/pics/${p}`
@@ -309,7 +219,7 @@ function App() {
       {/* Mobile Header with Hamburger */}
       <div className="mobile-header">
         <div className="mobile-brand">
-          <img src="/pics/mochi1.jpg" alt="Mochi" className="mobile-avatar" />
+          <img src="/pics/mochi1.jpg" alt="Mochi" className="mobile-avatar" width="40" height="40" />
           <span className="mobile-title">MOCHI.CAT</span>
         </div>
         <button
@@ -344,6 +254,8 @@ function App() {
               src="/pics/mochi1.jpg"
               alt="profile"
               className="profile-img"
+              width="200"
+              height="200"
             />
             <div className="profile-info">
               Name: Mochi<br />
@@ -415,6 +327,8 @@ function App() {
                 src="/mochi_pixel.png"
                 alt="pixel mochi"
                 className="pixel-mochi-img"
+                width="48"
+                height="48"
               />
             </div>
             <div className="counter-label">Total Views:</div>
@@ -439,7 +353,7 @@ function App() {
           className={`mobile-nav-btn ${currentPage === 'valentine' ? 'active' : ''}`}
         >
           <span className="mobile-nav-icon">💝</span>
-          <span className="mobile-nav-label">Love</span>
+          <span className="mobile-nav-label">Game</span>
         </button>
         <button
           onClick={() => user ? setShowUpload(true) : setShowLogin(true)}
@@ -467,7 +381,7 @@ function App() {
       {/* Main Content (Right Frame) */}
       <main className="container-retro main-content main-mobile">
         <div className="box-title">
-          <span>:: MOCHI.CAT - {currentPage === 'home' ? 'GALLERY' : 'PROFILE'} ::</span>
+          <span>:: MOCHI.CAT - {currentPage === 'home' ? 'GALLERY' : currentPage === 'valentine' ? 'GAME' : currentPage === 'about' ? 'INFO' : 'ABOUT'} ::</span>
           <span className="blink">● ONLINE</span>
         </div>
 
@@ -483,6 +397,9 @@ function App() {
               <div className="gallery-grid">
                 {photos.map((pic, i) => {
                   const src = pic.url || `/pics/${pic}`
+                  // Use optimized URL for thumbnail (300px is enough for grid)
+                  const optimizedSrc = getOptimizedUrl(src, 300)
+
                   return (
                     <div key={pic.id || i} className="gallery-item">
                       {user && pic.id && (
@@ -498,12 +415,15 @@ function App() {
                       )}
                       <div onClick={() => openMedia(src)} className="gallery-img-container">
                         <img
-                          src={src}
+                          src={optimizedSrc}
                           alt="mochi"
-                          loading="lazy"
+                          width="300"
+                          height="300"
+                          loading={i < 4 ? "eager" : "lazy"}
                           decoding="async"
-                          fetchpriority={i < 4 ? "high" : "auto"}
+                          {...(i < 4 ? { fetchPriority: "high" } : {})}
                           className="gallery-img"
+                          style={{ contentVisibility: 'auto' }}
                         />
                       </div>
                     </div>
@@ -541,6 +461,8 @@ function App() {
                           onMouseOver={e => { if (!isIOS()) e.target.play() }}
                           onMouseOut={e => { if (!isIOS()) { e.target.pause(); e.target.currentTime = 0; } }}
                           className="gallery-img"
+                          width="300"
+                          height="300"
                         />
                         <div style={{
                           position: 'absolute',
@@ -562,10 +484,10 @@ function App() {
           {currentPage === 'about' && (
             <div className="about-card">
               <div className="about-inner">
-                <h1 className="about-title">Who is Mochi?</h1>
-                <img src="/pics/mochi3.jpg" className="about-img" />
+                <h1 className="about-title">mochi:3</h1>
+                <img src="/pics/mochi3.jpg" className="about-img" width="200" height="200" alt="Mochi About" />
                 <p className="about-text">
-                  most cute cat 4ever mochi🥺 💕
+                  most cute cat 4ever 💕
                   <br /><br />
                   t amo sandra ♡
                   <br /><br />
@@ -614,154 +536,7 @@ function App() {
 
           {/* Valentine Undertale-Style Section */}
           {currentPage === 'valentine' && (
-            <div className={`valentine-container ${shakeScreen ? 'shake' : ''}`}>
-              {/* Floating Hearts Background */}
-              <div className="floating-hearts">
-                {floatingHearts.map(heart => (
-                  <div
-                    key={heart.id}
-                    className="floating-heart"
-                    style={{
-                      left: `${heart.x}%`,
-                      animationDelay: `${heart.delay}s`,
-                      animationDuration: `${heart.duration}s`,
-                      fontSize: `${heart.size}px`
-                    }}
-                  >
-                    ♥
-                  </div>
-                ))}
-              </div>
-
-              {/* Battle Arena */}
-              <div className="undertale-battle">
-                {/* Enemy Display */}
-                <div className="enemy-display">
-                  <div className="enemy-sprite">
-                    <img
-                      src="/pics/mochi1.jpg"
-                      alt="Mochi"
-                      className={`enemy-img ${selectedAction ? 'enemy-react' : ''}`}
-                    />
-                    <div className="enemy-hearts">
-                      {[...Array(3)].map((_, i) => (
-                        <span key={i} className="pixel-heart">♥</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="enemy-name">★ MOCHI ★</div>
-                  <div className="enemy-subtitle">LV 99 - The Cutest Cat</div>
-                </div>
-
-                {/* Dialog Box - Undertale Style */}
-                <div className="undertale-dialog">
-                  <div className="dialog-border">
-                    <div className="dialog-inner">
-                      <div className="dialog-text">
-                        {displayedText.split('\n').map((line, i) => (
-                          <p key={i}>{line}</p>
-                        ))}
-                        {isTyping && <span className="cursor-blink">▌</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stats Bar */}
-                <div className="stats-container">
-                  <div className="stat-row">
-                    <span className="stat-label">MOCHI HP</span>
-                    <div className="hp-bar">
-                      <div className="hp-fill" style={{ width: `${mochiHP}%` }}></div>
-                    </div>
-                    <span className="hp-text">{mochiHP}/100</span>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label love-label">♥ LOVE</span>
-                    <div className="love-bar">
-                      <div className="love-fill" style={{ width: `${lovePoints}%` }}></div>
-                    </div>
-                    <span className="love-text">{lovePoints}/100</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons - Undertale Style */}
-                {valentinePhase !== 'result' && (
-                  <div className="action-buttons">
-                    <button
-                      className="action-btn fight-btn"
-                      onClick={() => handleValentineAction('fight')}
-                      disabled={isTyping}
-                    >
-                      <span className="btn-icon">⚔️</span>
-                      <span className="btn-text">FIGHT</span>
-                    </button>
-                    <button
-                      className="action-btn act-btn"
-                      onClick={() => handleValentineAction('act')}
-                      disabled={isTyping}
-                    >
-                      <span className="btn-icon">💕</span>
-                      <span className="btn-text">ACT</span>
-                    </button>
-                    <button
-                      className="action-btn item-btn"
-                      onClick={() => handleValentineAction('item')}
-                      disabled={isTyping}
-                    >
-                      <span className="btn-icon">🍫</span>
-                      <span className="btn-text">ITEM</span>
-                    </button>
-                    <button
-                      className="action-btn mercy-btn"
-                      onClick={() => handleValentineAction('mercy')}
-                      disabled={isTyping}
-                    >
-                      <span className="btn-icon">💝</span>
-                      <span className="btn-text">MERCY</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Win Screen */}
-                {valentinePhase === 'result' && (
-                  <div className="valentine-result">
-                    <div className="result-hearts">
-                      {[...Array(7)].map((_, i) => (
-                        <span key={i} className="result-heart" style={{ animationDelay: `${i * 0.1}s` }}>♥</span>
-                      ))}
-                    </div>
-                    <h2 className="result-title">
-                      {valentineResult === 'mercy' ? '♥ TRUE LOVE ♥' : '♥ LOVE WINS ♥'}
-                    </h2>
-                    <p className="result-text">
-                      {valentineResult === 'mercy'
-                        ? '¡Has elegido a MOCHI para siempre!'
-                        : '¡MOCHI te ha conquistado con su amor!'}
-                    </p>
-                    <p className="result-message">Feliz San Valentín 💕</p>
-                    <button
-                      className="pixel-btn restart-btn"
-                      onClick={() => {
-                        setValentinePhase('intro')
-                        setDialentText(valentineDialogs.intro)
-                        setLovePoints(0)
-                        setMochiHP(100)
-                        setValentineResult(null)
-                      }}
-                    >
-                      ♥ PLAY AGAIN ♥
-                    </button>
-                  </div>
-                )}
-
-                {/* Player Soul Heart */}
-                <div className="soul-container">
-                  <div className="player-soul">♥</div>
-                  <span className="soul-label">TU ALMA</span>
-                </div>
-              </div>
-            </div>
+            <UndertaleGame />
           )}
 
         </div>
