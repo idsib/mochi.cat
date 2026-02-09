@@ -424,6 +424,7 @@ const UndertaleGame = ({ onWin, isIOS }) => {
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
+                    style={{ touchAction: phase === 'defense' ? 'none' : 'auto' }}
                 >
                     {phase === 'defense' ? (
                         <div className="bullet-hell-box">

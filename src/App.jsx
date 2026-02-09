@@ -18,10 +18,9 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isVideoPaused, setIsVideoPaused] = useState(false)
 
-  // Touch/swipe state for lightbox and menu
+  // Touch/swipe state for lightbox
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
-  const [menuTouchStart, setMenuTouchStart] = useState(null)
   const minSwipeDistance = 50
 
   // Component to handle Video Control (Play/Pause)
@@ -236,18 +235,8 @@ function App() {
       {/* Sidebar (Left Frame) */}
       <aside
         className={`container-retro sidebar sidebar-mobile ${mobileMenuOpen ? 'mobile-open' : ''}`}
-        onTouchStart={(e) => setMenuTouchStart(e.targetTouches[0].clientY)}
-        onTouchMove={(e) => {
-          const touchMove = e.targetTouches[0].clientY;
-          if (menuTouchStart && menuTouchStart - touchMove > minSwipeDistance) {
-            setMobileMenuOpen(false);
-            setMenuTouchStart(null);
-          }
-        }}
-        onTouchEnd={() => setMenuTouchStart(null)}
       >
         <div className="box-title desktop-only">:: MENU ::</div>
-        <div className="mobile-swipe-indicator"></div>
         <div className="sidebar-content">
           <div className="profile-box desktop-only">
             <img
